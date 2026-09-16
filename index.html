@@ -1,9 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vacunas Diego</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4c8298">
+<meta name="description" content="Historial de vacunación e inyecciones de Diego">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vacunas Diego">
 <style>
 :root{
   --ink:#263746;--muted:#72828d;--line:#dfe7ea;--bg:#f5f8f7;--card:#fff;
@@ -54,9 +62,22 @@ textarea{min-height:115px;resize:vertical}.time-row{display:flex;gap:8px}.defaul
 .body-stage{flex:1;display:flex;align-items:center;justify-content:center;padding:3px 0}
 svg{width:min(410px,82%);height:475px;overflow:visible}
 .body-line{stroke:#6e8087;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.skin{fill:#fff0da}.body-fill{fill:#edf5ef}
-.zone{cursor:pointer;transition:.12s}.zone-fill{fill:#d9ebe0;stroke:#78918e;stroke-width:2.5}.zone:hover .zone-fill{stroke:#4c8298;stroke-width:3}.zone.selected .zone-fill{fill:#9fc5aa;stroke:#477b5a;stroke-width:4}.zone.recent-1 .zone-fill{fill:#ffd9d9;stroke:var(--red);stroke-width:3}.zone.recent-2 .zone-fill{fill:#ffe8c6;stroke:var(--orange);stroke-width:3}.zone.recent-1.selected .zone-fill,.zone.recent-2.selected .zone-fill{stroke:#477b5a;stroke-width:4}
+.zone{cursor:pointer;transition:.12s}.zone-fill{fill:var(--zc,#fee1c8);stroke:var(--zs,#00000080);stroke-width:2}.zone:hover .zone-fill{stroke:#4c8298;stroke-width:3}.zone.selected .zone-fill{fill:#9fc5aa;stroke:#477b5a;stroke-width:4}.zone.recent-1 .zone-fill{fill:#ffd9d9;stroke:var(--red);stroke-width:3}.zone.recent-2 .zone-fill{fill:#ffe8c6;stroke:var(--orange);stroke-width:3}.zone.recent-1.selected .zone-fill,.zone.recent-2.selected .zone-fill{stroke:#477b5a;stroke-width:4}
 .zone-label{font-size:10px;font-weight:850;fill:#52666d;pointer-events:none}.recent-dot{stroke:#fff;stroke-width:2}
 .selection{text-align:center;background:#f5f8f7;border:1px solid var(--line);border-radius:12px;padding:11px;font-size:13px;font-weight:750}.selection span{color:var(--blue)}
+
+
+.hidden{display:none!important}
+.tabs{display:flex;gap:6px;background:#edf3f4;border:1px solid var(--line);border-radius:14px;padding:4px;margin-bottom:18px;box-shadow:0 4px 14px rgba(37,55,68,.04)}
+.tab-btn{flex:1;border:0;background:transparent;color:var(--muted);border-radius:10px;padding:11px 16px;font-size:13px;font-weight:850;transition:.15s}
+.tab-btn:hover{color:var(--ink);background:#f7faf9}.tab-btn.active{background:#fff;color:var(--blue);box-shadow:0 3px 10px rgba(37,55,68,.08)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+.inventory-head{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:16px}.inventory-head h2{margin:0;font-size:20px}.inventory-head p{margin:5px 0 0;color:var(--muted);font-size:13px}
+.inventory-layout{display:grid;grid-template-columns:330px minmax(0,1fr);gap:22px}
+.inventory-list{display:flex;flex-direction:column;gap:9px}.inventory-item{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:13px 15px;background:#fff}.inventory-main strong{font-size:13px}.inventory-main small{display:block;color:var(--muted);font-size:11px;margin-top:4px}.inventory-qty{text-align:right;min-width:72px}.inventory-qty b{display:block;font-size:19px;color:var(--blue)}.inventory-qty span{font-size:10px;color:var(--muted)}.inventory-actions{display:flex;gap:4px}.inventory-total{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:13px}.inventory-pill{background:var(--blue-soft);color:#426f82;border-radius:99px;padding:7px 10px;font-size:11px;font-weight:800}
+.inventory-summary{margin-top:22px}.inventory-summary .card{padding:15px}.inventory-summary-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.inventory-summary-head strong{font-size:12px;text-transform:uppercase;letter-spacing:1.1px;color:var(--muted)}.inventory-mini-list{display:flex;gap:7px;flex-wrap:wrap}.inventory-mini{background:#f5f8f7;border:1px solid var(--line);border-radius:10px;padding:7px 9px;font-size:11px}.inventory-mini b{color:var(--blue)}
+@media(max-width:820px){.inventory-layout{grid-template-columns:1fr}.inventory-item{grid-template-columns:1fr auto}.inventory-actions{grid-column:1/3;justify-content:flex-end}}
+@media(max-width:540px){.tabs{margin-bottom:14px}.tab-btn{padding:10px 8px;font-size:12px}.inventory-item{grid-template-columns:1fr}.inventory-qty{text-align:left}.inventory-actions{grid-column:auto;justify-content:flex-end}}
 
 .history-panel{display:none;margin-top:22px}.history-panel.open{display:block}
 .history-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:13px}.history-head h2{margin:0;font-size:20px}.history-head p{margin:4px 0 0;color:var(--muted);font-size:12px}
@@ -77,6 +98,28 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
 
 @media(max-width:820px){.topbar{align-items:flex-start;flex-direction:column}.actions{justify-content:flex-start}.layout{grid-template-columns:1fr}.body-card{min-height:620px}.record-row{grid-template-columns:65px 1fr auto}.site-badge{grid-column:2}.record-actions{grid-column:3;grid-row:1/3}}
 @media(max-width:540px){.app{padding:18px 12px 35px}.brand h1{font-size:25px}.date-main{min-width:180px}.date{font-size:18px}.actions .btn{font-size:12px;padding:9px 10px}.body-card{padding:15px}svg{width:96%;height:430px}.legend{justify-content:flex-start}.record-row{grid-template-columns:58px 1fr}.record-actions{grid-column:1/3;grid-row:auto;justify-content:flex-end}.site-badge{grid-column:2}.import-summary{grid-template-columns:1fr 1fr 1fr}}
+.app{display:none}.app.show{display:block}
+#authScreen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;z-index:200;background:linear-gradient(160deg,#2f5f75 0%,#4c8298 42%,#7fb0bd 100%)}
+#authScreen.hide{display:none}
+.auth-card{width:min(380px,100%);background:#fff;border-radius:22px;box-shadow:0 30px 70px rgba(15,35,45,.35);padding:34px 30px 28px;text-align:center;animation:auth-in .35s ease}
+@keyframes auth-in{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+.auth-avatar{width:78px;height:78px;border-radius:50%;margin:0 auto 14px;background:linear-gradient(160deg,var(--blue),#6fa3b5);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px rgba(76,130,152,.35)}
+.auth-avatar svg{width:38px;height:38px;stroke:#fff}
+.auth-card h1{margin:0;font-size:19px;color:var(--ink)}
+.auth-card p{margin:6px 0 22px;color:var(--muted);font-size:12.5px}
+.auth-card label{text-align:left}
+.auth-card .btn.primary{width:100%;padding:12px;margin-top:8px;border-radius:12px;font-size:14px}
+.auth-error{display:none;background:var(--red-soft);color:#a64c4c;border-radius:10px;padding:9px 11px;font-size:12px;margin-top:14px;text-align:left}
+.auth-error.show{display:block}
+.auth-foot{margin-top:18px;font-size:11px;color:#9fb0b6}
+.user-chip{position:relative}
+.user-chip-btn{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 12px 6px 6px;font-weight:750;font-size:12.5px;color:var(--ink)}
+.user-chip-avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(160deg,var(--blue),#6fa3b5);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:850}
+.user-chip-menu{display:none;position:absolute;right:0;top:44px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:6px;box-shadow:0 16px 35px rgba(0,0,0,.12);z-index:40;width:190px}
+.user-chip-menu.open{display:block}
+.user-chip-menu .who{padding:8px 10px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--line);margin-bottom:4px;word-break:break-all}
+.user-chip-menu button{width:100%;border:0;background:#fff;text-align:left;padding:9px 10px;border-radius:8px;font-size:12.5px;font-weight:750;color:#a64c4c}
+.user-chip-menu button:hover{background:var(--red-soft)}
 @media print{
   body{background:#fff}.app{display:none!important}#printReport{display:block;padding:0 20px;font-family:Arial,sans-serif;color:#263746}
   .print-header{display:flex;justify-content:space-between;border-bottom:2px solid #4c8298;padding-bottom:14px;margin-bottom:18px}.print-title{color:#4c8298;font-size:25px;font-weight:800}.print-meta{text-align:right;font-size:11px;color:#72828d}
@@ -86,28 +129,54 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
 </style>
 </head>
 <body>
-<div class="app">
+<div id="authScreen">
+  <div class="auth-card">
+    <div class="auth-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
+    <h1>Vacunas Diego</h1>
+    <p>Inicia sesión para ver el historial.</p>
+    <form id="loginForm" onsubmit="return handleLogin(event)">
+      <label for="loginEmail">Correo o usuario</label>
+      <input id="loginEmail" type="text" autocomplete="username" required>
+      <label for="loginPassword">Contraseña</label>
+      <input id="loginPassword" type="password" autocomplete="current-password" required>
+      <button class="btn primary" type="submit" id="loginBtn">Iniciar sesión</button>
+      <div class="auth-error" id="authError"></div>
+    </form>
+    <div class="auth-foot">Acceso privado — solo para la familia.</div>
+  </div>
+</div>
+<div class="app" id="appRoot">
 <header class="topbar">
   <div class="brand">
     <h1>Vacunas Diego</h1>
-    <p>Daily health & injection record</p>
+    <p>Historial de vacunación</p>
   </div>
   <div class="actions">
-    <div class="export-menu">
-      <button class="btn primary" id="exportBtn">Export ▾</button>
-      <div class="export-options" id="exportOptions">
-        <button onclick="exportCSV()">Export CSV</button>
-        <button onclick="exportJSON()">Export JSON</button>
-        <button onclick="exportPDF()">Export PDF</button>
+    <div class="user-chip">
+      <button class="user-chip-btn" id="userChipBtn" onclick="toggleUserMenu()">
+        <span class="user-chip-avatar" id="userInitials">?</span>
+        <span id="userEmailShort">—</span>
+      </button>
+      <div class="user-chip-menu" id="userChipMenu">
+        <div class="who" id="userEmailFull"></div>
+        <button onclick="handleLogout()">Cerrar sesión</button>
       </div>
     </div>
-    <button class="btn icon" onclick="openImport()">
+    <div class="export-menu">
+      <button class="btn primary" id="exportBtn">Exportar ▾</button>
+      <div class="export-options" id="exportOptions">
+        <button id="exportCsvBtn" onclick="exportCSV()">Exportar a CSV</button>
+        <button id="exportJsonBtn" onclick="exportJSON()">Exportar a JSON</button>
+        <button id="exportPdfBtn" onclick="exportPDF()">Exportar a PDF</button>
+      </div>
+    </div>
+    <button class="btn icon" onclick="openImport()" id="importFileButton">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M4 13v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/></svg>
-      Read from file
+      Importar archivo
     </button>
-    <button class="btn icon" onclick="toggleHistory()" title="View medical history">
+    <button class="btn icon" onclick="toggleHistory()" id="historyButton" title="Ver historial médico">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5.5A2.5 2.5 0 0 1 5.5 3h13A2.5 2.5 0 0 1 21 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 18.5z"/><path d="M7 8h10M7 12h6M7 16h4"/><circle cx="17" cy="16" r="2.5" fill="currentColor" stroke="none"/></svg>
-      History
+      Historial
     </button>
     <input id="fileInput" type="file" accept=".json,.csv" hidden>
   </div>
@@ -115,12 +184,18 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
 
 <div class="separator"></div>
 
+<nav class="tabs" aria-label="Secciones principales">
+  <button class="tab-btn active" id="tabRegistro" onclick="switchTab('registro')">Registro</button>
+  <button class="tab-btn" id="tabInventario" onclick="switchTab('inventario')">Inventario</button>
+</nav>
+
+<div class="tab-panel active" id="panelRegistro">
 <div class="datebar">
-  <button onclick="changeDay(-1)" aria-label="Previous day">‹</button>
+  <button onclick="changeDay(-1)" aria-label="Día anterior">‹</button>
   <div class="date-main"><div class="weekday" id="weekday"></div><div class="date" id="dateText"></div></div>
-  <button onclick="changeDay(1)" aria-label="Next day">›</button>
+  <button onclick="changeDay(1)" aria-label="Día siguiente">›</button>
   <div class="calendar-wrap">
-    <button class="cal-trigger" onclick="toggleCalendar()" aria-label="Open calendar">▣</button>
+    <button class="cal-trigger" onclick="toggleCalendar()" aria-label="Abrir calendario">▣</button>
     <div class="calendar" id="calendar">
       <div class="cal-head"><button onclick="changeMonth(-1)">‹</button><span id="calTitle"></span><button onclick="changeMonth(1)">›</button></div>
       <div class="cal-grid" id="calGrid"></div>
@@ -128,109 +203,284 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
   </div>
 </div>
 
+<div class="inventory-summary">
+  <div class="card">
+    <div class="inventory-summary-head"><strong>Existencias disponibles</strong><span style="font-size:11px;color:var(--muted)">Se descuenta 1 al guardar una nueva inyección</span></div>
+    <div class="inventory-mini-list" id="inventoryMiniList"></div>
+  </div>
+</div>
+
 <main class="layout">
 <section class="card">
-  <div class="section-title">Injection details</div>
+  <div class="section-title">Detalles de la inyección</div>
 
-  <label for="time">Time</label>
+  <label for="time">Hora</label>
   <input id="time" type="time" value="20:00">
-  <div class="default-pill">● Default time: 8:00 PM</div>
+  <div class="default-pill">● Hora por defecto: 8:00 PM</div>
 
-  <label for="type">Record type</label>
+  <label for="type">Tipo</label>
   <select id="type">
-    <option value="medication">Medication / hormone</option>
-    <option value="vaccine">Vaccine</option>
+    <option value="medication">Medicación / Hormona</option>
+    <option value="vaccine">Vacuna</option>
   </select>
 
-  <label for="vaccine">Vaccine / medication</label>
-  <input id="vaccine" type="text" placeholder="e.g. Growth hormone">
+  <label for="vaccine">Vacuna / Medicación</label>
+  <input id="vaccine" type="text" placeholder="Ejemplo: Hormona de crecimiento">
 
-  <label for="dose">Dose <span style="font-weight:500;color:#9aa5aa">(optional)</span></label>
-  <input id="dose" type="text" placeholder="e.g. 1.5 mg">
+  <label for="dose">Dosis <span style="font-weight:500;color:#9aa5aa">(opcional)</span></label>
+  <input id="dose" type="text" placeholder="Ejemplo: 1.5 mg">
 
-  <label for="notes">Notes</label>
-  <textarea id="notes" placeholder="Any reaction, observation, or useful note..."></textarea>
+  <label for="notes">Notas</label>
+  <textarea id="notes" placeholder="Cualquier reacción, observación o nota útil..."></textarea>
 
   <div class="save-row">
-    <button class="btn" onclick="clearForm()">Clear</button>
-    <button class="btn primary" id="saveBtn" onclick="saveRecord()">Save record</button>
+    <button class="btn" onclick="clearForm()">Resetear</button>
+    <button class="btn primary" id="saveBtn" onclick="saveRecord()">Guardar registro</button>
   </div>
   <div class="status" id="status"></div>
 </section>
 
 <section class="card body-card">
   <div class="body-head">
-    <div><h2>Injection site</h2><p>Select where today's injection was given.</p></div>
+    <div><h2>Lugar de inyección</h2><p>Selecciona en qué lugar del cuerpo fue administrada la inyección.</p></div>
     <div class="legend">
-      <span class="legend-item"><i class="dot red"></i>Yesterday</span>
-      <span class="legend-item"><i class="dot orange"></i>2 days ago</span>
-      <span class="legend-item"><i class="dot blue"></i>Selected</span>
+      <span class="legend-item"><i class="dot red"></i>Ayer</span>
+      <span class="legend-item"><i class="dot orange"></i>Hace 2 dias</span>
+      <span class="legend-item"><i class="dot blue"></i>Seleccionado</span>
     </div>
   </div>
 
   <div class="view-toggle">
-    <button id="frontBtn" class="active" onclick="setBodyView('front')">Front</button>
-    <button id="rearBtn" onclick="setBodyView('rear')">Rear</button>
+    <button id="frontBtn" class="active" onclick="setBodyView('front')">Vista frontal</button>
+    <button id="rearBtn" onclick="setBodyView('rear')">Vista trasera</button>
   </div>
 
   <div class="body-stage" id="bodyStage"></div>
-  <div class="selection">Today's site: <span id="selectedSite">None selected</span></div>
+  <div class="selection">Lugar de hoy: <span id="selectedSite">Ninguno seleccionado</span></div>
 </section>
 </main>
 
 <section class="history-panel" id="historyPanel">
   <div class="card">
     <div class="history-head">
-      <div><h2>Medical history</h2><p>All saved injections, newest first.</p></div>
-      <button class="btn" onclick="toggleHistory()">Close</button>
+      <div><h2>Historial médico</h2><p>Todas las inyecciones, las más nuevas primero</p></div>
+      <button class="btn" onclick="toggleHistory()">Cerrar</button>
     </div>
     <div class="history-list" id="historyList"></div>
   </div>
 </section>
 
-<div class="footer-note">Personal tracking tool. Keep official vaccination and treatment records with the child's healthcare provider.</div>
+<div class="footer-note">Registro de seguimiento personal.</div>
+</div>
+
+<div class="tab-panel" id="panelInventario">
+  <div class="inventory-head">
+    <div><h2>Inventario</h2><p>Controla cuántas unidades de cada medicamento o vacuna tiene actualmente el familiar.</p></div>
+  </div>
+  <div class="inventory-layout">
+    <section class="card">
+      <div class="section-title" id="inventoryFormTitle">Agregar al inventario</div>
+      <input id="inventoryId" type="hidden">
+      <label for="inventoryName">Medicamento / vacuna</label>
+      <input id="inventoryName" type="text" placeholder="Ejemplo: Hormona de crecimiento">
+      <label for="inventoryType">Tipo</label>
+      <select id="inventoryType"><option value="medication">Medicación</option><option value="vaccine">Vacuna</option><option value="other">Otro</option></select>
+      <label for="inventoryQuantity">Cantidad disponible</label>
+      <input id="inventoryQuantity" type="number" min="0" step="1" placeholder="Ejemplo: 10">
+      <label for="inventoryUnit">Unidad</label>
+      <input id="inventoryUnit" type="text" placeholder="Ejemplo: dosis, frascos, ampollas">
+      <div class="save-row">
+        <button class="btn" onclick="clearInventoryForm()">Resetear</button>
+        <button class="btn primary" id="inventorySaveBtn" onclick="saveInventoryItem()">Agregar al inventario</button>
+      </div>
+      <div class="status" id="inventoryStatus"></div>
+    </section>
+    <section class="card">
+      <div class="inventory-total" id="inventoryTotals"></div>
+      <div class="inventory-list" id="inventoryList"></div>
+    </section>
+  </div>
 </div>
 
 <div class="modal-backdrop" id="importModal">
   <div class="modal">
-    <h2>Import medical history</h2>
-    <p>Review the file before anything is added. Existing records are never silently overwritten.</p>
+    <h2>Importar historial medico</h2>
+    <p>Revisa el archivo antes de agregar nada. Los registros existentes nunca se sobrescriben sin previo aviso.</p>
     <div class="import-summary">
-      <div class="summary-box"><b id="importNew">0</b><span>new records</span></div>
-      <div class="summary-box"><b id="importExisting">0</b><span>matching records</span></div>
-      <div class="summary-box"><b id="importInvalid">0</b><span>invalid rows</span></div>
+      <div class="summary-box"><b id="importNew">0</b><span>nuevo registro</span></div>
+      <div class="summary-box"><b id="importExisting">0</b><span>registros coincidentes</span></div>
+      <div class="summary-box"><b id="importInvalid">0</b><span>filas no válidas</span></div>
     </div>
     <div class="preview" id="importPreview"></div>
-    <div class="modal-actions"><button class="btn" onclick="closeImport()">Cancel</button><button class="btn primary" id="confirmImport" onclick="confirmImport()">Import records</button></div>
+    <div class="modal-actions"><button class="btn" onclick="closeImport()">Cancelar</button><button class="btn primary" id="confirmImport" onclick="confirmImport()">Importar registros</button></div>
   </div>
 </div>
 
 <div class="modal-backdrop" id="editModal">
   <div class="modal">
-    <h2>Edit record</h2><p>Update this entry and save it back to the history.</p>
+    <h2>Editar registro</h2><p>Actualiza este registro y guárdalo de nuevo en el historial.</p>
     <input id="editId" type="hidden">
-    <label>Date</label><input id="editDate" type="date">
-    <label>Time</label><input id="editTime" type="time">
-    <label>Type</label><select id="editType"><option value="medication">Medication / hormone</option><option value="vaccine">Vaccine</option></select>
-    <label>Vaccine / medication</label><input id="editName">
-    <label>Dose</label><input id="editDose">
-    <label>Injection site</label><select id="editSite"></select>
-    <label>Notes</label><textarea id="editNotes"></textarea>
-    <div class="modal-actions"><button class="btn" onclick="closeEdit()">Cancel</button><button class="btn primary" onclick="updateRecord()">Save changes</button></div>
+    <label>Fecha</label><input id="editDate" type="date">
+    <label>Hora</label><input id="editTime" type="time">
+    <label>Tipo</label><select id="editType"><option value="medication">Medicación / Hormona</option><option value="vaccine">Vacuna</option></select>
+    <label>Vacuna / medicación</label><input id="editName">
+    <label>Dosis</label><input id="editDose">
+    <label>Lugar de inyección</label><select id="editSite"></select>
+    <label>Notas</label><textarea id="editNotes"></textarea>
+    <div class="modal-actions"><button class="btn" onclick="closeEdit()">Cancelar</button><button class="btn primary" onclick="updateRecord()">Guardar registro</button></div>
   </div>
 </div>
 
 <div id="printReport"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
+/* ---- Supabase config: fill these in with your project's own values ----
+   Find them in your Supabase project: Settings > API.
+   The anon/public key is safe to expose in client-side code — it only
+   works within the permissions your Row Level Security policies allow. */
+const SUPABASE_URL='YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY='YOUR_SUPABASE_ANON_KEY';
+const sb=(SUPABASE_URL.startsWith('http'))?supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+
+// TEMPORARY DEVELOPMENT LOGIN
+// This is intentionally client-side and is NOT secure for a public production site.
+const DEV_ADMIN_USERNAME='admin';
+const DEV_ADMIN_PASSWORD='admin123';
+const DEV_ADMIN_EMAIL='admin@local.dev';
+let currentUser=null;
+
+function isDevAdminSession(){return localStorage.getItem('vacunasDevAdmin')==='1'}
+
+function showAuthError(msg){const el=document.getElementById('authError');el.textContent=msg;el.classList.add('show')}
+function hideAuthError(){document.getElementById('authError').classList.remove('show')}
+
+async function handleLogin(e){
+  e.preventDefault();
+  hideAuthError();
+  const username=document.getElementById('loginEmail').value.trim();
+  const password=document.getElementById('loginPassword').value;
+  const btn=document.getElementById('loginBtn');
+  btn.disabled=true;btn.textContent='Entrando...';
+
+  // Temporary local admin so development can continue even before Supabase is configured.
+  if(username===DEV_ADMIN_USERNAME && password===DEV_ADMIN_PASSWORD){
+    localStorage.setItem('vacunasDevAdmin','1');
+    btn.disabled=false;btn.textContent='Iniciar sesión';
+    onLoggedIn({email:DEV_ADMIN_EMAIL,isDevAdmin:true});
+    return false;
+  }
+
+  if(!sb){
+    btn.disabled=false;btn.textContent='Iniciar sesión';
+    showAuthError('Usuario o contraseña incorrectos.');
+    return false;
+  }
+
+  const {data,error}=await sb.auth.signInWithPassword({email:username,password});
+  btn.disabled=false;btn.textContent='Iniciar sesión';
+  if(error){showAuthError(error.message==='Invalid login credentials'?'Correo o contraseña incorrectos.':error.message);return false}
+  onLoggedIn(data.user);
+  return false;
+}
+
+async function handleLogout(){
+  localStorage.removeItem('vacunasDevAdmin');
+  if(sb)await sb.auth.signOut();
+  currentUser=null;
+  document.getElementById('userChipMenu').classList.remove('open');
+  document.getElementById('appRoot').classList.remove('show');
+  document.getElementById('authScreen').classList.remove('hide');
+  document.getElementById('loginForm').reset();
+}
+
+function toggleUserMenu(){document.getElementById('userChipMenu').classList.toggle('open')}
+
+function onLoggedIn(user){
+  currentUser=user;
+  const email=user.email||'';
+  document.getElementById('userInitials').textContent=(email[0]||'?').toUpperCase();
+  document.getElementById('userEmailShort').textContent=email.split('@')[0];
+  document.getElementById('userEmailFull').textContent=email;
+  document.getElementById('authScreen').classList.add('hide');
+  document.getElementById('appRoot').classList.add('show');
+  renderBody();renderDate();renderHistory();
+}
+
+async function initAuth(){
+  // Restore the temporary development login across page refreshes.
+  if(isDevAdminSession()){onLoggedIn({email:DEV_ADMIN_EMAIL,isDevAdmin:true});return}
+  if(!sb){showAuthError('Supabase aún no está configurado. Puedes usar el acceso de desarrollo temporal.');return}
+  const {data:{session}}=await sb.auth.getSession();
+  if(session)onLoggedIn(session.user);
+  sb.auth.onAuthStateChange((event,session)=>{
+    if(event==='SIGNED_OUT'){currentUser=null;document.getElementById('appRoot').classList.remove('show');document.getElementById('authScreen').classList.remove('hide')}
+  });
+}
+
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.user-chip'))document.getElementById('userChipMenu')?.classList.remove('open');
+});
+
 const zones=['leftArm','rightArm','leftLeg','rightLeg','leftButt','rightButt'];
-const zoneNames={leftArm:'Left arm',rightArm:'Right arm',leftLeg:'Left leg',rightLeg:'Right leg',leftButt:'Left butt cheek',rightButt:'Right butt cheek'};
+const zoneNames={leftArm:'Brazo izquierdo',rightArm:'Brazo derecho',leftLeg:'Pierna izquierda',rightLeg:'Pierna derecha',leftButt:'Glúteo izquierdo',rightButt:'Glúteo derecho'};
 let currentDate=new Date();currentDate.setHours(12,0,0,0);
 let calendarMonth=new Date(currentDate.getFullYear(),currentDate.getMonth(),1);
-let selectedZone=null,bodyView='front',editingId=null,pendingImport=null;
+let selectedZone=null,bodyView='front',editingId=null,pendingImport=null,currentTab='registro';
 let records=JSON.parse(localStorage.getItem('diegoHealthRecords')||'[]');
 records=records.map(normalizeRecord).filter(Boolean);
+let inventory=JSON.parse(localStorage.getItem('diegoMedicineInventory')||'[]').map(normalizeInventoryItem).filter(Boolean);
 
+function inventoryUid(){return 'i_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7)}
+function normalizeInventoryItem(i){
+  if(!i||!String(i.name||'').trim())return null;
+  return {id:i.id||inventoryUid(),name:String(i.name).trim(),type:i.type||'medication',quantity:Math.max(0,Number(i.quantity)||0),unit:String(i.unit||'unidades').trim()||'unidades'};
+}
+function persistInventory(){localStorage.setItem('diegoMedicineInventory',JSON.stringify(inventory))}
+function switchTab(tab){
+  currentTab=tab;
+  document.getElementById('panelRegistro').classList.toggle('active',tab==='registro');
+  document.getElementById('panelInventario').classList.toggle('active',tab==='inventario');
+  document.getElementById('tabRegistro').classList.toggle('active',tab==='registro');
+  document.getElementById('tabInventario').classList.toggle('active',tab==='inventario');
+  document.getElementById('importFileButton')?.classList.toggle('hidden',tab!=='registro');
+  document.getElementById('historyButton')?.classList.toggle('hidden',tab!=='registro');
+  renderExportLabels();
+  if(tab==='inventario')renderInventory(); else renderInventorySummary();
+}
+function renderExportLabels(){
+  const inv=currentTab==='inventario';
+  document.getElementById('exportCsvBtn').textContent=inv?'Exportar inventario a CSV':'Exportar historial a CSV';
+  document.getElementById('exportJsonBtn').textContent=inv?'Exportar inventario a JSON':'Exportar historial a JSON';
+  document.getElementById('exportPdfBtn').textContent=inv?'Exportar inventario a PDF':'Exportar historial a PDF';
+}
+function inventoryTypeLabel(t){return t==='vaccine'?'Vacuna':t==='other'?'Otro':'Medicación'}
+function renderInventorySummary(){
+  const el=document.getElementById('inventoryMiniList');if(!el)return;
+  if(!inventory.length){el.innerHTML='<span class="inventory-mini">Sin medicamentos o vacunas registrados.</span>';return}
+  el.innerHTML=inventory.map(i=>`<span class="inventory-mini">${esc(i.name)}: <b>${i.quantity} ${esc(i.unit)}</b></span>`).join('');
+}
+function renderInventory(){
+  const list=document.getElementById('inventoryList'),totals=document.getElementById('inventoryTotals');if(!list)return;
+  const med=inventory.filter(i=>i.type==='medication').length,vax=inventory.filter(i=>i.type==='vaccine').length;
+  totals.innerHTML=`<span class="inventory-pill">${inventory.length} artículo${inventory.length===1?'':'s'}</span><span class="inventory-pill">${med} medicación${med===1?'':'es'}</span><span class="inventory-pill">${vax} vacuna${vax===1?'':'s'}</span>`;
+  if(!inventory.length){list.innerHTML='<div class="empty">Aún no hay artículos en el inventario.</div>';return}
+  list.innerHTML=inventory.map(i=>`<div class="inventory-item"><div class="inventory-main"><strong>${esc(i.name)}</strong><small>${inventoryTypeLabel(i.type)}</small></div><div class="inventory-qty"><b>${i.quantity}</b><span>${esc(i.unit)}</span></div><div class="inventory-actions"><button class="mini-btn" onclick="editInventoryItem('${i.id}')">Editar</button><button class="mini-btn delete" onclick="deleteInventoryItem('${i.id}')">Eliminar</button></div></div>`).join('');
+}
+function inventoryStatus(msg,error=false){const s=document.getElementById('inventoryStatus');s.textContent=msg;s.style.background=error?'var(--red-soft)':'var(--green-soft)';s.style.color=error?'#a64c4c':'#4d7c61';s.classList.add('show');setTimeout(()=>s.classList.remove('show'),3000)}
+function clearInventoryForm(){document.getElementById('inventoryId').value='';document.getElementById('inventoryName').value='';document.getElementById('inventoryType').value='medication';document.getElementById('inventoryQuantity').value='';document.getElementById('inventoryUnit').value='';document.getElementById('inventoryFormTitle').textContent='Agregar al inventario';document.getElementById('inventorySaveBtn').textContent='Agregar al inventario'}
+function saveInventoryItem(){
+  const id=document.getElementById('inventoryId').value,name=document.getElementById('inventoryName').value.trim(),quantity=Number(document.getElementById('inventoryQuantity').value),unit=document.getElementById('inventoryUnit').value.trim()||'unidades',type=document.getElementById('inventoryType').value;
+  if(!name){inventoryStatus('Escribe el nombre del medicamento o vacuna.',true);return}
+  if(!Number.isFinite(quantity)||quantity<0){inventoryStatus('La cantidad debe ser un número igual o mayor que 0.',true);return}
+  if(id){const item=inventory.find(i=>i.id===id);if(item)Object.assign(item,{name,type,quantity,unit});inventoryStatus('Inventario actualizado.')}else{inventory.push({id:inventoryUid(),name,type,quantity,unit});inventoryStatus('Artículo agregado al inventario.')}
+  persistInventory();clearInventoryForm();renderInventory();renderInventorySummary();
+}
+function editInventoryItem(id){const i=inventory.find(x=>x.id===id);if(!i)return;document.getElementById('inventoryId').value=i.id;document.getElementById('inventoryName').value=i.name;document.getElementById('inventoryType').value=i.type;document.getElementById('inventoryQuantity').value=i.quantity;document.getElementById('inventoryUnit').value=i.unit;document.getElementById('inventoryFormTitle').textContent='Editar inventario';document.getElementById('inventorySaveBtn').textContent='Guardar cambios'}
+function deleteInventoryItem(id){const i=inventory.find(x=>x.id===id);if(!i)return;if(!confirm(`¿Eliminar ${i.name} del inventario?`))return;inventory=inventory.filter(x=>x.id!==id);persistInventory();renderInventory();renderInventorySummary();inventoryStatus('Artículo eliminado del inventario.')}
+function findInventoryByName(name){const n=String(name||'').trim().toLocaleLowerCase();return inventory.find(i=>i.name.toLocaleLowerCase()===n)}
+function consumeInventoryForRecord(name){const i=findInventoryByName(name);if(!i)return null;if(i.quantity>0)i.quantity-=1;persistInventory();return i}
+function restoreInventoryForRecord(name){const i=findInventoryByName(name);if(!i)return null;i.quantity+=1;persistInventory();return i}
 function uid(){return 'r_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7)}
 function normalizeRecord(r){
   if(!r || !r.date)return null;
@@ -238,10 +488,10 @@ function normalizeRecord(r){
 }
 function persist(){localStorage.setItem('diegoHealthRecords',JSON.stringify(records))}
 function iso(d){return d.toISOString().slice(0,10)}
-function fmtDate(d){return d.toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'})}
+function fmtDate(d){return d.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'})}
 function dateFrom(s){const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d,12)}
 function renderDate(){
-  document.getElementById('weekday').textContent=currentDate.toLocaleDateString(undefined,{weekday:'long'});
+  document.getElementById('weekday').textContent=currentDate.toLocaleDateString('es-ES',{weekday:'long'});
   document.getElementById('dateText').textContent=fmtDate(currentDate);
   renderCalendar();updateRecentSites();loadRecordForDate();
 }
@@ -249,9 +499,9 @@ function changeDay(n){currentDate.setDate(currentDate.getDate()+n);calendarMonth
 function toggleCalendar(){document.getElementById('calendar').classList.toggle('open')}
 function changeMonth(n){calendarMonth.setMonth(calendarMonth.getMonth()+n);renderCalendar()}
 function renderCalendar(){
-  document.getElementById('calTitle').textContent=calendarMonth.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+  document.getElementById('calTitle').textContent=calendarMonth.toLocaleDateString('es-ES',{month:'long',year:'numeric'});
   const g=document.getElementById('calGrid');g.innerHTML='';
-  ['S','M','T','W','T','F','S'].forEach(x=>{const d=document.createElement('div');d.className='dow';d.textContent=x;g.appendChild(d)});
+  ['D','L','M','X','J','V','S'].forEach(x=>{const d=document.createElement('div');d.className='dow';d.textContent=x;g.appendChild(d)});
   const first=new Date(calendarMonth.getFullYear(),calendarMonth.getMonth(),1).getDay(),count=new Date(calendarMonth.getFullYear(),calendarMonth.getMonth()+1,0).getDate();
   for(let i=0;i<first;i++)g.appendChild(document.createElement('div'));
   for(let day=1;day<=count;day++){
@@ -264,31 +514,45 @@ function renderCalendar(){
 function setBodyView(v){bodyView=v;document.getElementById('frontBtn').classList.toggle('active',v==='front');document.getElementById('rearBtn').classList.toggle('active',v==='rear');renderBody()}
 function bodySvg(){
 if(bodyView==='front')return `
-<svg viewBox="0 0 360 520" aria-label="Male body injection site diagram">
- <circle cx="180" cy="58" r="39" class="skin body-line"/><path d="M164 55q4-6 8 0M188 55q4-6 8 0M173 70q7 5 14 0" fill="none" class="body-line"/>
- <path d="M143 93L112 115L130 235L230 235L248 115L217 93L203 105L157 105Z" class="body-fill body-line"/>
- <g id="leftArm" class="zone" onclick="selectZone('leftArm','Left arm')"><path class="zone-fill" d="M116 114L83 132L42 188L58 201L111 158L132 132Z"/><text class="zone-label" x="70" y="166" transform="rotate(-42 70 166)">LEFT ARM</text><circle id="dot-leftArm" class="recent-dot" cx="87" cy="146" r="7" fill="var(--red)" style="display:none"/></g>
- <g id="rightArm" class="zone" onclick="selectZone('rightArm','Right arm')"><path class="zone-fill" d="M244 114L277 132L318 188L302 201L249 158L228 132Z"/><text class="zone-label" x="290" y="166" transform="rotate(42 290 166)">RIGHT ARM</text><circle id="dot-rightArm" class="recent-dot" cx="273" cy="146" r="7" fill="var(--red)" style="display:none"/></g>
- <g id="leftLeg" class="zone" onclick="selectZone('leftLeg','Left leg')"><path class="zone-fill" d="M132 229L177 229L171 382L145 382Z"/><text class="zone-label" x="153" y="318" transform="rotate(-90 153 318)">LEFT LEG</text><circle id="dot-leftLeg" class="recent-dot" cx="153" cy="285" r="7" fill="var(--red)" style="display:none"/></g>
- <g id="rightLeg" class="zone" onclick="selectZone('rightLeg','Right leg')"><path class="zone-fill" d="M183 229L228 229L215 382L189 382Z"/><text class="zone-label" x="207" y="318" transform="rotate(90 207 318)">RIGHT LEG</text><circle id="dot-rightLeg" class="recent-dot" cx="207" cy="285" r="7" fill="var(--red)" style="display:none"/></g>
- <text x="180" y="202" text-anchor="middle" class="zone-label">THIGH / HIP AREA</text>
- <path d="M145 382h26l8 55h-42zM189 382h26l8 55h-42z" fill="#d9e6e5" class="body-line"/>
+<svg viewBox="0 0 226.36336 613.86212" aria-label="Diagrama del cuerpo — sitios de inyección (vista frontal)">
+ <g transform="translate(-376.69646,-2.7479171)">
+ <path style="fill:#fae1c3;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" d="m 435.97751,102.15447 1.59894,9.94896 1.7766,8.88299 0.53298,4.4415 1.95426,7.63938 2.30958,5.68512 2.6649,4.08618 4.08618,3.90852 2.84256,2.30958 5.3298,3.73086 5.15213,2.48723 5.50746,1.95426 7.28406,2.6649 9.06066,2.13192 2.6649,0.17766 h 1.7766 l 7.99469,-1.42128 7.46172,-1.59894 4.79682,-1.59894 4.08618,-1.95426 3.5532,-1.24362 4.26384,-2.48723 3.19788,-2.48724 2.31499,-2.24285 1.88437,-1.88437 2.0728,-2.57531 1.82156,-2.82655 1.5703,-2.51249 1.19344,-2.70093 1.13062,-3.64311 1.25624,-5.08779 1.005,-4.71093 0.69094,-2.95217 0.62812,-6.09279 0.31406,-4.96217 -0.0628,-5.77873 0.12562,-8.793721 -0.12562,-2.763741 -1.44468,-2.575303 -1.82156,-2.386866 -1.38187,-2.763741 -1.44468,-2.575303 -1.88437,-3.705924 -1.31906,-2.889365 -1.44468,-2.952177 -0.69094,-2.386867 -0.94218,-2.512491 -1.19343,-1.821556 0.94218,6.281228 0.5025,2.889365 0.62812,3.140614 0.69094,2.700928 0.50249,2.009992 -2.0728,-0.942184 -2.51249,-2.198429 -2.95218,-4.145611 -1.50749,-3.203426 -2.44968,-4.585296 -1.75875,-3.014989 -1.13062,-2.009993 -1.44468,-3.894361 -0.37687,-3.329051 -0.43969,-2.638116 0.12563,-1.821556 -0.0628,-0.628123 -1.06781,1.884369 -1.75874,1.821556 -1.57031,2.952177 -1.25624,1.695931 -0.69094,1.004997 -2.70092,2.826552 -2.13562,2.261242 -1.82156,1.633119 -1.82155,1.63312 -2.63812,2.135617 -1.31906,1.004996 -1.63312,1.067809 -2.44968,1.695932 -2.38686,1.193433 -2.51249,0.753747 -1.75875,-0.251249 -0.43968,-0.251249 1.88437,-1.193433 1.94718,-1.947181 2.00999,-2.826552 1.94718,-3.266239 1.25624,-2.952177 0.94219,-3.014989 0.62812,-2.072805 0.25125,-1.695932 0.0628,-1.193433 -0.0628,-0.56531 -1.69593,3.077801 -1.31906,2.072805 -2.76374,2.889365 -3.01499,3.014989 -1.82155,1.507495 -2.07281,1.507495 -3.70592,2.575303 -2.63812,1.695931 -1.75874,1.004997 -2.19843,1.319058 -2.82656,0.628122 -1.82155,0.502499 h -1.06781 l -1.005,0.125624 1.82156,-3.391863 1.06781,-1.94718 1.38187,-2.324055 c 0,0 0.5025,-1.695931 0.56531,-1.94718 0.0628,-0.251249 1.44468,-3.329051 1.44468,-3.329051 l 1.31906,-2.135617 1.19343,-2.009993 0.81656,-2.324054 -2.76374,2.449678 -3.64311,3.077802 -1.75874,2.261242 -3.20343,3.266238 -2.82655,3.831549 -2.38687,2.324055 -4.33405,4.396859 -3.32905,2.889365 -1.38187,0.439686 -0.62812,-0.125625 1.50749,-6.029979 1.5075,-4.459671 0.87937,-3.894361 1.06781,-2.763741 -0.31406,-0.56531 -3.45468,4.836545 -1.94718,2.952177 -2.00999,2.700928 -2.95218,4.019986 -1.82155,3.014989 -1.63312,3.329051 -1.38187,4.334047 -1.06781,3.454675 -0.94219,3.203426 -0.50249,2.952177 -0.31406,3.266239 z"/>
+ <path style="fill:#fae1c3;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" d="m 435.66595,102.13276 -3.76873,-2.763738 -3.51749,-0.628122 -2.26124,0.125624 -3.01499,2.638116 -1.88437,3.26624 -0.37687,4.14561 -0.12563,2.88936 0.12563,3.01499 0.75374,2.63812 2.01,4.27123 3.01499,3.89436 2.63811,1.88437 2.38687,1.63312 3.26624,1.005 2.51249,0.5025 1.63312,0.25125 1.75874,-0.12563 -0.87937,-5.02498 -0.62812,-5.27623 z"/>
+ <path style="fill:#fae1c3;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" d="m 542.06995,106.02712 3.39186,-5.1506 3.01499,-1.381873 3.64312,-0.502498 3.51748,2.009991 3.51749,3.76874 0.37687,4.52248 -0.87937,8.41685 -4.14561,6.78372 -4.52248,4.14561 -5.77873,2.13562 -3.76874,0.5025 -2.51249,-0.5025 3.01499,-13.44183 z"/>
+ <path style="fill:#333333;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" d="m 554.38116,99.494647 2.76374,-4.899358 2.00999,-7.286224 1.50749,-11.557459 v -8.919343 l -1.88436,-10.929336 -5.40186,-12.813705 -4.89936,-7.663098 -4.89935,-5.904354 -7.53748,-4.773733 -5.77873,-2.76374 1.63312,-0.753747 3.26624,-0.251249 4.14561,1.004996 1.38187,0.376874 -2.88936,-3.894362 -2.76374,-1.256245 -2.01,-0.502498 -5.6531,-0.376874 -3.76874,0.125625 -2.38687,0.502498 -2.00999,0.879372 -1.13062,-3.643112 -0.87937,-1.758744 -2.63812,-2.5124912 -2.38686,-1.5074947 -2.26124,-1.3818701 -2.01,-0.7537473 -3.14061,-1.0049964 -1.88437,-0.5024982 -2.26124,-0.5024983 2.13562,3.1406139 1.50749,1.6331192 2.13562,2.0099931 0.87937,1.884368 0.12562,1.256246 -2.26124,-1.63312 -3.89436,-1.38187 -5.02498,-1.130621 -4.89936,-0.6281224 -5.02498,-0.2512492 -6.78373,0.5024983 -5.27623,1.1306213 -4.39686,1.38187 -4.64811,1.38187 -6.53247,2.638115 -3.89436,1.758744 -5.77873,3.266239 -2.63812,1.758743 -5.15061,3.643112 -2.88936,3.01499 -4.89936,4.396859 -4.01998,4.899358 -3.76874,3.768736 -3.51749,3.140614 -2.51249,2.135618 2.38687,-0.502499 4.01998,-0.879371 3.89436,-1.758744 1.13063,-0.125625 -5.52749,7.788723 -0.87937,3.140613 -1.75874,4.522484 -1.38187,4.773733 -0.87937,5.276232 -0.25125,5.024982 0.37687,4.648108 0.5025,4.145611 0.75375,3.014989 0.87937,3.140614 0.75375,2.638115 0.75374,2.763741 0.62813,1.884368 0.37687,1.004996 2.51249,-0.125624 h 2.00999 l 1.5075,1.130621 1.88437,1.256243 1.38187,0.87937 1.25624,-0.75374 0.87937,-4.271238 1.13063,-6.532477 1.63311,-5.778729 1.005,-3.01499 3.51749,-5.653104 3.76874,-5.904354 2.88936,-3.01499 2.88936,-4.396859 v 2.512491 l -0.12562,2.261242 -1.50749,4.899357 -0.75375,3.01499 0.50249,3.266239 c 7.0572,-5.044223 16.37034,-16.292284 24.62242,-24.622413 l -2.13562,5.52748 c 0,0 -0.12562,2.135617 -0.5025,2.638116 -0.37687,0.502498 -4.14561,7.411848 -4.14561,7.411848 l -2.63811,4.39686 -1.25624,0.753747 c 0,0 6.53247,-1.758744 7.03497,-2.009993 0.5025,-0.251249 7.28622,-4.396859 7.28622,-4.396859 l 4.14561,-3.768737 5.15061,-5.778729 6.28123,-7.411849 -1.13063,8.54247 -0.87937,5.52748 -3.14061,3.894361 -4.27124,3.768737 -2.00999,0.753747 1.25625,0.502498 2.70093,-0.879372 4.20842,-1.758743 6.90935,-4.271235 4.01998,-3.643112 5.77873,-6.281228 1.88437,-4.648108 4.64811,-6.658102 v 6.155603 l 0.12562,5.77873 3.51749,7.851535 2.19843,5.276231 3.0778,5.339043 2.76374,2.638116 4.33405,1.94718 -0.56531,-2.952176 -1.005,-8.416846 -0.87937,-5.653105 4.27123,11.494648 2.57531,4.899357 3.83155,4.96217 1.75874,5.778729 1.005,8.165596 v 4.145607 2.13562 l 2.88936,-4.39686 4.39686,-1.256244 z"/>
+ <path style="fill:#fee1c8;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" d="m 472.22014,158.38384 0.0888,3.10905 0.0888,2.04309 -0.26649,2.22075 -0.97713,2.22075 -1.42128,1.95426 -2.57607,0.53298 -2.75373,0.35532 h -1.86542 l 1.33244,1.95426 2.39841,1.95426 2.39841,1.33245 4.08618,1.7766 4.70799,1.24362 6.75108,1.33245 6.12927,0.44415 6.83991,-0.44415 6.75107,-1.33245 3.90852,-1.42128 4.79682,-1.86543 3.46437,-2.6649 2.13192,-1.7766 1.33245,-1.68777 -3.81969,1.68777 h -2.30958 l -2.48724,-0.97713 -1.95426,-0.97713 -1.06596,-1.59894 -0.35532,-3.37554 0.17766,-3.28671 0.26649,-2.22075 -9.06066,2.04309 -4.53032,0.8883 -5.41863,0.97713 -11.01492,-2.39841 z"/>
+ <path style="fill:#d1e0ab;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" d="m 552.56685,331.73554 -5.86277,1.90984 -9.86013,1.73219 -6.35134,1.15479 -7.41731,0.62181 -5.01889,0.44415 c 0,0 -3.19788,0.44415 -3.37554,0.48856 -0.17766,0.0444 -5.19655,0.66623 -5.19655,0.66623 l -10.61519,0.48856 -12.56944,-0.17766 h -9.94895 l -11.81439,-0.57739 -11.10375,-1.24362 -13.01359,-2.26517 -5.90719,-1.15479 -5.99602,-2.04309 -2.30958,-1.99867 -0.0888,-3.02022 1.7766,-4.7524 0.3109,-9.99338 -0.17766,-4.88564 1.73218,-7.01757 1.42128,-7.41731 0.97713,-6.529 0.75506,-6.2181 0.44415,-4.57474 -0.0444,-5.86278 0.5774,-10.25986 0.35532,-6.04044 v -9.23832 -3.41995 l 0.22207,-29.75804 -0.17766,31.53464 -2.39841,-0.97713 -7.4173,-3.50878 -8.66092,-5.10773 -6.30693,-3.77527 -3.41995,-2.88698 -2.17634,-2.35399 0.13325,-1.1992 14.21279,-23.93968 5.86278,-7.90587 5.10773,-5.28538 5.19655,-3.64203 7.63938,-4.08618 8.08352,-3.2423 6.30693,-2.30958 3.59762,-0.79946 2.84256,-0.17766 2.57606,2.9758 5.28539,2.75373 6.79549,2.22075 6.66225,1.33245 8.08353,0.3109 9.41597,-1.06596 3.41996,-0.97713 7.63938,-2.70931 3.99734,-3.46437 3.10905,-2.22075 3.95294,1.4657 5.50746,2.22074 5.72953,2.39841 5.6407,3.06464 7.1064,4.17501 3.95293,3.19788 3.99735,3.81968 4.26384,6.08486 3.37554,5.6407 3.06464,4.7524 2.3984,4.93007 3.2423,5.72953 2.13192,3.15347 1.73218,2.62048 0.26649,1.11037 -8.883,6.08486 -13.01359,7.81704 -6.79549,2.9758 -2.30958,0.13324 0.13325,-30.46868 0.75505,43.61552 0.75506,16.43355 0.17766,8.39443 0.57739,10.21545 1.99868,8.21677 2.04308,8.74975 0.71064,6.39576 -0.93271,3.81969 0.8883,3.8641 0.8883,1.82102 0.44415,5.81836 z"/>
+ <path style="opacity:1;fill:#fee1c8;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" d="m 527.47239,86.698055 -1.68777,-1.51011 -2.75373,-2.131919 -2.75373,-0.97713 -3.02022,-0.17766 -3.19788,0.44415 -3.02022,0.71064 -1.86543,1.421279 -1.51011,1.06596 3.10905,-2.398409 6.04044,-1.24362 3.46437,0.35532 3.02022,0.97713 2.22075,1.865429 z"/>
+ <path style="fill:#bbbdc3;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" d="m 549.94637,333.73421 2.22075,5.68512 2.22075,7.72821 1.59894,8.26119 1.06596,7.28405 1.42128,9.23832 1.15479,6.57342 0.53298,5.68512 0.8883,6.30693 0.97713,7.63937 1.42128,5.68512 1.68777,9.06066 0.71064,6.57342 1.5101,6.04044 2.39841,9.86012 1.68777,8.883 0.79947,4.35267 0.0888,3.19788 -6.04044,3.73086 -7.63937,3.19788 -8.08353,2.48724 -8.52768,1.95425 -7.9947,0.71064 -12.43619,0.44415 -7.90587,-0.26649 -11.28141,-1.33244 -7.01756,-1.51011 -0.71064,-0.35532 -0.35532,-22.91814 -0.71064,-9.86012 -0.79947,-9.06066 -0.53298,-8.08353 -0.97713,-8.52768 -1.24362,-10.12661 -1.59894,16.16705 -0.26649,9.06066 -1.15479,7.9947 -0.79947,4.53032 -0.53298,10.92609 -0.35532,8.43885 -0.17766,10.39311 -1.59894,2.13192 -20.69738,1.95425 -15.81174,0.35532 -13.23567,-1.59893 -9.86012,-3.37554 -16.70004,-7.55055 -0.17766,-3.90852 4.35267,-17.85483 3.46437,-18.92078 3.28671,-20.07557 2.13192,-14.65695 1.7766,-10.21545 1.59894,-9.77129 2.13192,-9.50481 4.35266,-13.50216 12.52503,2.22075 14.65695,2.22075 18.92078,1.33245 16.34472,0.0888 16.43354,-0.17766 22.02984,-2.48724 18.47663,-3.90852 z"/>
+ <ellipse style="opacity:1;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2.24851;stroke-dasharray:none;stroke-opacity:1" cx="464.52661" cy="105.62622" rx="3.58167" ry="5.4817414"/>
+ <ellipse style="opacity:1;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2.24851;stroke-dasharray:none;stroke-opacity:1" cx="514.5896" cy="105.54033" rx="3.58167" ry="5.4817414"/>
+ <path style="opacity:1;fill:#fee1c8;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" d="m 488.23983,115.19772 -1.41328,0.87937 -1.28765,1.19343 -0.56531,1.44468 0.0314,1.005 1.25624,1.41328 1.19344,1.31905 0.78515,0.59672 -1.31906,-1.13062 -0.78515,-0.97359 -0.78515,-0.78515 -0.37688,-0.43969 -0.12562,-1.19343 0.78515,-1.28765 1.41328,-1.38187 z"/>
+ <path style="opacity:1;fill:#fee1c8;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" d="m 505.63883,134.48109 -1.75874,1.94718 -2.70093,1.69593 -3.95717,1.00499 -3.89437,0.69094 -5.6531,0.37687 c 0,0 -2.63812,-0.18843 -3.01499,-0.25125 -0.37687,-0.0628 -3.89436,-1.31905 -3.89436,-1.31905 0,0 -2.63812,-1.19344 -2.88937,-1.25625 -0.25125,-0.0628 -1.94718,-1.19343 -2.19843,-1.38187 -0.25124,-0.18844 -1.19343,-1.38187 -1.19343,-1.38187 l 2.19843,2.26124 2.76374,1.25625 4.52248,1.69593 3.64312,0.31406 4.45967,-0.31406 4.27123,-0.43969 4.89936,-1.31905 2.82655,-1.88437 z"/>
+ <path style="opacity:1;fill:#fee1c8;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" d="m 451.656,87.142205 1.37687,-1.59894 2.70931,-1.643354 2.04309,-1.110375 2.44283,-0.488565 3.41995,-0.35532 1.95426,0.310905 3.10905,0.843885 1.55452,1.199204 1.28804,0.8883 -2.6649,-1.954259 -5.28538,-1.42128 -5.59629,0.843885 -2.70932,1.376865 -2.04309,1.243619 z"/>
+ <g id="leftArm" class="zone" onclick="selectZone('leftArm')"><path class="zone-fill" d="m 411.81576,230.95793 -2.6649,10.12662 -2.84256,14.2128 -4.26384,10.65959 -4.4415,16.8777 -4.61915,20.07557 -0.8883,10.83726 -0.8883,8.883 -1.24362,9.59363 -0.8883,7.81704 -2.6649,7.9947 -5.15214,9.7713 -3.02022,9.59363 -0.53298,7.81704 2.13192,8.35002 2.30958,6.39576 8.883,8.35001 -4.26384,-6.39575 -2.13192,-3.90852 -1.24362,-14.74578 1.24362,14.2128 5.86278,10.30427 1.59894,1.7766 1.59894,-0.71064 2.84255,-1.06596 2.48724,-3.02022 0.17766,-4.08617 -2.13192,-4.26384 -3.02022,-6.2181 -1.42127,-3.02022 0.75505,-1.55452 -1.64335,6.70666 0.35532,3.90852 2.48723,3.5532 0.35532,3.37554 -0.53298,3.02021 -1.59893,2.13192 -1.7766,-0.17766 0.53298,1.06596 4.79681,-1.06596 2.48724,-3.73086 0.35532,-3.90851 -5.99602,-13.14684 0.48857,-4.26384 2.84255,-3.73086 -0.35532,-2.48724 -1.06596,-1.24362 2.6649,3.73086 1.06596,4.26384 -0.35532,2.13192 0.53298,3.73086 1.42128,3.19788 0.8883,1.06596 2.13192,0.71064 2.30958,-0.8883 1.06596,-1.24362 0.17766,-6.75108 v -5.3298 l 0.71064,-1.95426 1.42128,-3.5532 0.35532,-4.97448 -0.8883,-3.90851 -1.7766,-4.61916 -0.8883,-3.90852 1.24362,-4.97448 1.7766,-5.3298 2.6649,-7.28406 2.6649,-7.46171 2.6649,-7.1064 2.30958,-7.46172 1.95426,-5.86278 3.37554,-11.72555 1.24362,-7.1064 3.19787,-10.83726 2.48724,-6.92874 1.7766,-2.13192 0.71064,-12.96917 0.53298,-7.63938 -9.41597,-3.90852 -6.2181,-3.37554 z"/><circle id="dot-leftArm" class="recent-dot" cx="29.4" cy="312.6" r="4.5" fill="var(--red)" style="display:none"/></g>
+ <g id="rightArm" class="zone" onclick="selectZone('rightArm')"><path class="zone-fill" d="m 584.40543,364.87652 -1.31906,1.75874 -1.005,2.13562 -0.81656,2.88936 -0.12562,3.76874 v 3.26624 l -1.005,2.5753 -2.26124,2.38687 -2.07281,0.43968 -1.75874,-0.56531 -0.75375,-3.32905 -0.12562,-4.45967 -0.12563,-4.01998 -0.81656,-3.51749 -0.94218,-3.64311 -0.18844,-3.07781 v -4.71092 l 1.31906,-3.14061 0.94219,-2.26124 0.81655,-3.70593 0.75375,-1.82155 -2.88936,-6.09279 -1.63312,-6.02998 -2.95218,-7.72591 -2.44968,-7.28623 -3.26624,-8.16559 -3.0778,-8.98216 -1.75874,-7.41185 -1.94718,-7.34903 -2.13562,-8.91935 -1.06781,-3.89436 -5.08779,-12.56245 -0.81656,-19.47181 8.7309,-3.51749 13.94433,-8.54247 2.13562,7.28623 2.26124,10.11277 1.69593,9.48466 3.32905,8.73091 2.38687,9.29621 4.64811,13.8187 1.31905,6.78373 2.01,10.99215 0.56531,7.60028 1.13062,11.43184 1.06781,7.28622 0.37687,4.64811 1.06781,5.52748 2.0728,4.33405 2.76375,6.53247 1.82155,5.02499 2.13562,6.02998 0.75375,5.90435 -0.31407,4.83654 -0.94218,5.46467 -1.94718,5.27623 -2.00999,4.14561 -1.63312,1.5075 -2.51249,2.13562 -2.88937,2.82655 -2.38686,1.57031 -2.82656,-0.75375 -0.75374,-1.38187 -2.70093,-1.94718 -0.43969,-2.63812 0.94219,-3.39186 1.75874,-3.5803 1.82156,-3.51749 1.13062,-1.75874 0.81656,-2.32406 0.12562,-1.94718 -2.00999,-3.76873 -1.57031,-1.5075 -1.75874,-1.06781 z"/><path class="zone-fill" d="m 596.21413,372.35118 -0.12562,7.53747 -0.37687,4.52249 -1.5075,4.52248 -1.25624,4.01999 -2.63812,3.39186 -2.88937,0.87937 -2.51249,-0.25125 v -3.39186 -3.14062 l 1.005,-2.00999 2.00999,-3.64311 0.87938,-2.76374 -0.75375,-3.76874 -0.75375,-1.38187 0.75375,1.25625 0.62812,3.39186 v 0.87937 l -3.51749,7.6631 -0.37687,5.02498 0.5025,1.75875 2.51249,0.87937 3.26624,-1.88437 2.13561,-3.76874 2.88937,-7.66309 z"/><circle id="dot-rightArm" class="recent-dot" cx="197.2" cy="311.5" r="4.5" fill="var(--red)" style="display:none"/></g>
+ <g id="rightLeg" class="zone" onclick="selectZone('rightLeg')"><path class="zone-fill" d="m 546.96931,462.17273 -1.005,5.40186 -0.5025,8.47966 0.5025,10.42684 0.31406,10.30121 -0.25125,4.14561 -0.94218,13.50464 -0.62812,8.47966 -0.25125,5.52748 -1.44468,16.70806 -0.5025,10.42684 0.12562,11.43184 0.56531,2.95217 6.46967,9.35903 10.7409,11.68309 9.67309,8.2284 1.63312,1.57031 0.62812,1.88437 0.25125,2.00999 -0.43969,2.00999 -1.25624,1.06781 -1.57031,0.18844 -1.44468,-0.25125 -0.5025,-0.18844 0.5025,-1.44468 0.0628,-1.25624 -0.43969,-1.25625 -0.87937,-1.63312 -1.13062,-0.81656 -1.50749,-1.25624 2.44968,1.94718 1.31905,2.32405 0.18844,1.82156 -0.62812,1.25624 0.18843,0.31406 -0.31406,1.31906 -1.06781,0.87937 -0.94218,0.25125 -1.25625,0.25125 -1.63311,0.18844 -0.0628,-0.62812 0.5025,-2.19843 v -1.31906 l -0.56531,-1.25625 -1.005,-1.25624 -0.87937,-1.13062 -1.44468,-1.25625 1.47609,1.31906 1.69593,2.10421 0.69094,1.44468 v 1.31906 l -0.5025,2.22984 0.0942,0.59671 -1.13063,0.87937 -1.25624,0.4711 -1.41328,0.15703 -1.5389,0.0314 -1.06781,-0.15703 0.4711,-0.59671 0.0942,-1.66453 -0.12562,-1.75874 -0.84797,-1.97859 -1.19343,-1.47609 -1.91577,-1.75874 -0.5025,-0.37688 2.41827,2.16703 1.16203,1.38187 0.84796,1.97858 0.0942,3.32906 -0.5339,0.75374 -1.16203,1.06781 -1.60171,0.69094 -2.82656,-0.0942 -1.72733,-0.72234 0.62812,-2.63812 -0.37687,-2.38687 c 0,0 -1.41328,-1.5389 -1.5075,-1.66452 -0.0942,-0.12562 -3.98858,-3.29764 -3.98858,-3.29764 l 3.76874,3.17202 1.63312,1.75874 -0.25125,4.86795 -0.56531,1.44468 -1.5389,0.56531 -2.5439,0.81656 -2.00999,0.0942 -2.35546,-0.97359 -4.77374,-3.54889 -4.77373,-3.26624 -4.27123,-3.64311 -2.01,-3.89437 c 0,0 -1.63312,-2.26124 -2.13562,-2.63811 -0.50249,-0.37687 -4.77373,-3.14061 -4.77373,-3.14061 l -1.88437,-2.5125 -0.12562,-5.40185 1.13062,-4.89936 1.38187,-4.14561 0.25125,-2.88936 -1.5075,-2.5125 c 0,0 0,-3.14061 0.12563,-3.76873 0.12562,-0.62812 1.63312,-5.02498 1.63312,-5.02498 l -2.13562,-11.55746 -1.63312,-6.90935 -1.00499,-8.1656 -1.005,-7.78872 -1.63312,-10.80371 -1.13062,-10.92934 -0.62812,-9.67309 -0.25125,-7.53747 0.50249,-6.28123 0.5025,-5.40186 -0.12562,-5.52748 -0.87937,-3.14061 -0.87938,-4.52249 -0.12562,-1.88436 6.1556,1.38187 7.53748,0.37687 7.78872,-0.37687 11.68308,-0.62813 z"/><circle id="dot-rightLeg" class="recent-dot" cx="163.0" cy="536.1" r="4.5" fill="var(--red)" style="display:none"/></g>
+ <g id="leftLeg" class="zone" onclick="selectZone('leftLeg')"><path class="zone-fill" d="m 473.81908,463.69246 -2.13192,7.1064 -0.17766,7.9947 0.35532,9.06066 0.35532,11.54789 -0.8883,12.4362 -1.95426,10.83726 -2.13192,13.14683 -0.8883,6.75108 -2.30958,12.25854 -1.24362,10.12661 1.7766,4.4415 0.71064,2.84256 -1.24362,3.37554 -1.24362,1.42128 1.7766,3.90852 1.42128,5.3298 v 3.90852 l -1.59894,3.5532 -4.61915,3.90852 -3.37554,2.48723 -2.48724,1.7766 -1.59894,3.02022 -4.08618,3.90852 -4.61916,3.19788 -4.61916,2.30958 -2.48724,1.24362 -2.30958,-0.17766 -2.6649,-1.59894 -1.24362,-3.02022 0.35532,-3.02022 2.6649,-2.6649 3.02022,-1.7766 -3.11655,1.73749 -2.44968,2.70092 -0.31407,2.95218 0.75375,2.38687 -2.13562,0.0628 -3.01498,0.0628 -1.38187,-0.87937 -1.31906,-2.00999 -0.37688,-2.51249 1.19344,-2.01 1.69593,-1.94718 2.44968,-1.82155 -2.44968,1.69593 -1.82156,2.19843 -1.00499,1.82155 0.25125,2.57531 0.69093,1.13062 -0.87937,0.31406 -1.13062,0.25125 -2.57531,-0.18844 -2.0728,-1.19343 -0.31406,-2.82655 0.69093,-2.88937 2.01,-1.75874 1.82155,-1.63312 -3.83155,3.32905 -0.81656,2.82655 0.37688,2.88937 -1.57031,-0.25125 -1.82156,-0.94219 -1.31905,-1.31906 -0.31407,-2.13561 v -2.76374 l 1.75875,-1.88437 1.82155,-1.13062 -2.00999,0.94218 -1.50749,2.00999 v 4.5853 l -1.63312,0.31406 -1.63312,0.0628 -1.31906,-2.5753 0.37687,-3.32905 0.87938,-2.0728 10.99214,-9.42185 3.45468,-3.51748 3.76874,-4.39686 4.08279,-4.89936 3.20343,-4.14561 2.00999,-3.51749 0.87938,-1.82155 0.25124,-9.92434 -0.18843,-9.42185 -0.94219,-10.80371 -1.06781,-15.01213 -0.81655,-11.93433 -0.56532,-9.73591 -0.25124,-10.36402 -0.0628,-6.40686 -0.12562,-11.55745 v -6.72092 l 0.0628,-3.83155 13.3162,1.57031 16.14276,-0.37687 z"/><circle id="dot-leftLeg" class="recent-dot" cx="64.1" cy="536.4" r="4.5" fill="var(--red)" style="display:none"/></g>
+ </g>
 </svg>`;
 return `
-<svg viewBox="0 0 360 520" aria-label="Male body rear injection site diagram">
- <circle cx="180" cy="58" r="39" class="skin body-line"/><path d="M164 55q4-3 8 0M188 55q4-3 8 0" fill="none" class="body-line"/>
- <path d="M143 93L112 115L130 235L230 235L248 115L217 93L203 105L157 105Z" class="body-fill body-line"/>
- <g id="leftArm" class="zone" onclick="selectZone('leftArm','Left arm')"><path class="zone-fill" d="M116 114L83 132L42 188L58 201L111 158L132 132Z"/><text class="zone-label" x="70" y="166" transform="rotate(-42 70 166)">LEFT ARM</text><circle id="dot-leftArm" class="recent-dot" cx="87" cy="146" r="7" fill="var(--red)" style="display:none"/></g>
- <g id="rightArm" class="zone" onclick="selectZone('rightArm','Right arm')"><path class="zone-fill" d="M244 114L277 132L318 188L302 201L249 158L228 132Z"/><text class="zone-label" x="290" y="166" transform="rotate(42 290 166)">RIGHT ARM</text><circle id="dot-rightArm" class="recent-dot" cx="273" cy="146" r="7" fill="var(--red)" style="display:none"/></g>
- <g id="leftButt" class="zone" onclick="selectZone('leftButt','Left butt cheek')"><ellipse class="zone-fill" cx="144" cy="208" rx="31" ry="29"/><text class="zone-label" x="144" y="212" text-anchor="middle">LEFT</text><circle id="dot-leftButt" class="recent-dot" cx="144" cy="192" r="7" fill="var(--red)" style="display:none"/></g>
- <g id="rightButt" class="zone" onclick="selectZone('rightButt','Right butt cheek')"><ellipse class="zone-fill" cx="216" cy="208" rx="31" ry="29"/><text class="zone-label" x="216" y="212" text-anchor="middle">RIGHT</text><circle id="dot-rightButt" class="recent-dot" cx="216" cy="192" r="7" fill="var(--red)" style="display:none"/></g>
- <g id="leftLeg" class="zone" onclick="selectZone('leftLeg','Left leg')"><path class="zone-fill" d="M132 229L177 229L171 382L145 382Z"/><text class="zone-label" x="153" y="318" transform="rotate(-90 153 318)">LEFT LEG</text><circle id="dot-leftLeg" class="recent-dot" cx="153" cy="285" r="7" fill="var(--red)" style="display:none"/></g>
- <g id="rightLeg" class="zone" onclick="selectZone('rightLeg','Right leg')"><path class="zone-fill" d="M183 229L228 229L215 382L189 382Z"/><text class="zone-label" x="207" y="318" transform="rotate(90 207 318)">RIGHT LEG</text><circle id="dot-rightLeg" class="recent-dot" cx="207" cy="285" r="7" fill="var(--red)" style="display:none"/></g>
- <path d="M145 382h26l8 55h-42zM189 382h26l8 55h-42z" fill="#d9e6e5" class="body-line"/>
+<svg viewBox="0 0 226.35616 610.05115" aria-label="Diagrama del cuerpo — sitios de inyección (vista trasera)">
+ <g transform="translate(-1079.1129,-4.5022772)">
+ <path style="fill:#fee1c8;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" d="m 1212.7794,168.08565 -1.8843,-2.63811 -0.2513,-4.77374 0.3769,-5.52748 0.5025,-2.00999 -0.7537,5.15061 6.5324,-2.26124 5.1506,-2.51249 5.2763,-3.64312 4.5225,-3.89436 5.1506,-6.1556 2.5124,-5.15061 0.3769,-3.76873 -0.5025,-1.25625 2.7638,0.5025 4.1456,-0.75375 3.7687,-1.13062 3.1406,-2.88937 2.01,-2.38686 2.01,-2.63812 2.01,-3.51748 1.005,-3.14062 0.8794,-4.14561 -0.3769,-3.14061 -1.1306,-3.51749 -1.8844,-2.00999 -2.5125,-1.256249 -1.8844,-0.125624 -1.6331,1.004993 -1.6331,1.38187 -0.5025,1.25625 -0.3769,2.76374 -1.5075,3.51749 -1.005,3.01499 -2.0099,4.14561 -2.5125,5.02498 -3.015,4.27123 -4.8994,5.40186 -3.3918,3.39186 -8.7938,7.03498 -8.0399,5.27623 -3.7688,3.14061 -4.5225,3.89436 -0.8793,-7.03497 -6.9094,7.1606 -1.1306,1.00499 -4.2712,-7.78872 -3.5175,6.78373 -2.2613,0.5025 -6.7837,-7.78873 -1.7587,6.78373 -6.6581,-4.64811 -8.7938,-5.6531 -9.673,-7.6631 -10.1756,-11.80871 -8.5425,-14.69807 -4.1456,-9.04497 -4.02,1.50749 -2.4389,2.55191 -0.953,4.35744 0.6282,8.03998 1.8843,4.01998 2.7638,4.01999 4.3968,3.76873 3.1406,1.63312 3.2663,0.62813 4.5225,0.12562 2.2612,-0.0736 -4.5225,0.32484 1.5075,-0.12562 1.005,3.64311 2.2613,5.02498 2.8893,3.89436 3.8944,3.76874 2.5125,2.51249 3.2662,2.00999 4.1456,2.63812 4.6481,1.75874 3.7688,1.25625 1.6331,0.37687 0.1256,4.64811 -1.3819,3.89436 -0.7537,2.26124 2.2612,-6.40685 -0.3768,-4.77373 -0.2513,-5.27623 0.8794,10.04996 -0.6281,3.26624 -1.8844,2.76374 2.01,1.13062 6.4068,-1.005 6.4069,-1.13062 h 6.9093 l 9.6731,0.25125 5.1506,1.13062 4.8994,0.75375 z"/>
+ <path style="fill:#333333;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" d="m 1178.4184,153.4982 -9.2383,-6.39576 -8.35,-5.68512 -10.4819,-9.41598 -7.6394,-9.7713 -4.7968,-7.46171 -6.7511,-13.50216 -1.9543,-5.507458 -0.5329,-4.796819 -0.533,-4.086178 v -3.553199 -6.040439 -3.375539 l -3.1979,3.375539 -2.4872,3.375539 0.3553,-6.395758 0.7106,-5.685118 1.7766,-6.751078 1.599,-5.507458 0.8883,-2.6649 1.2436,-2.842559 2.3095,-4.974478 2.8426,-4.086179 2.3096,-3.908519 3.0202,-4.619159 4.4415,-4.086179 3.9085,-3.197879 2.6649,-1.954259 2.8426,-2.309579 4.9745,-2.84256 3.1978,-1.243619 5.1522,-2.309579 1.2436,-0.35532 3.7309,-0.71064 3.0202,-1.06596 3.3755,-0.53298 4.7968,-0.35532 h 6.2181 l 5.5075,0.53298 3.7309,0.8883 4.4414,1.06596 2.6649,1.421279 v -1.243619 l -0.8883,-2.84256 -2.1319,-2.6648988 -3.9085,-2.3095793 -2.4872,-1.2436196 2.1319,-0.3553199 2.8425,0.1776599 2.6649,0.8882998 3.3756,1.2436196 1.9542,1.4212796 1.9543,1.9542597 1.7766,1.598939 1.9543,3.020219 1.2436,2.13192 0.8883,1.954259 1.4213,-2.664899 4.6191,-0.35532 h 4.6192 l 3.5532,0.17766 3.0202,0.8883 2.1319,1.243619 1.4213,0.8883 -4.0862,0.53298 -2.8425,0.17766 -2.6649,1.06596 -1.2437,1.421279 4.4415,1.06596 4.2639,2.309579 2.8425,2.487239 3.5532,3.19788 3.0203,1.954259 3.0202,2.842559 3.3755,4.619159 2.1319,3.908519 2.3096,5.507458 1.599,5.507458 1.0659,4.796819 0.3553,3.730859 0.533,4.974479 0.3553,6.751078 -0.1776,3.375539 v 2.842559 l -0.7107,3.908519 -1.9542,6.395758 -0.7107,2.131919 -1.9542,3.197879 0.7106,0.8883 -3.5532,1.243619 -0.8883,1.7766 -1.2436,5.15214 -2.1319,5.3298 -1.599,3.37554 -2.3095,3.73085 -2.3096,4.61916 -4.4415,4.79682 -4.6192,5.15214 -3.1979,2.48724 -3.3755,2.84256 -4.4415,3.02022 -3.7309,2.6649 -3.5532,2.84256 -3.3755,2.84256 -1.9543,1.59894 -2.3095,1.59893 -0.3554,-8.70533 -7.817,9.77129 -4.6191,-9.06065 -3.3756,7.46171 -1.5989,2.48724 -7.8171,-10.12661 z"/>
+ <path style="fill:#d1e0ab;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" d="m 1194.0614,167.33191 h -4.02 -5.1506 l -9.5475,1.63312 -7.0349,0.50249 -3.7688,1.005 -8.9193,3.39186 -8.6681,3.14062 -6.7837,3.14061 -7.1606,4.52248 -4.1457,3.64312 -4.2712,5.02498 -3.6431,5.77873 -3.3919,5.27623 -3.5175,6.40685 -7.9143,13.19058 -0.6281,1.75874 4.02,3.39187 6.7837,4.77373 7.4118,4.52248 6.5325,3.14062 5.1506,2.00999 1.005,0.5025 -0.7537,-32.66239 1.005,41.83298 -0.8794,9.04497 -0.2513,8.54247 -0.7537,11.05496 -0.2513,8.03997 -0.7537,4.01999 -1.6331,4.64811 -0.7538,3.39186 -0.7537,2.88936 -0.3769,2.88937 v 2.76374 l 0.5025,2.26124 0.3769,2.51249 v 2.13562 l -1.2563,2.88936 -0.6281,2.76374 c 0,0 -0.2512,4.01999 -0.2512,4.52249 0,0.5025 1.005,3.89436 1.005,3.89436 l 1.6331,1.13062 2.7637,1.13062 14.8237,2.76374 15.3262,1.88437 14.07,1.38187 14.1955,0.25125 13.3162,-0.25125 17.2106,-1.005 13.8187,-2.13562 9.2962,-2.38686 7.2862,-2.76374 1.8844,-1.38187 0.1256,-1.5075 -1.3818,-17.71306 -0.8794,-5.40185 -1.2562,-4.01999 -0.7538,-4.14561 -0.8794,-6.1556 -0.3768,-2.26125 -0.3769,-10.67808 -0.3769,-9.54747 -0.3769,-6.1556 -0.1256,-3.76874 -0.1256,-6.1556 -0.1256,-7.6631 -0.2513,-16.70807 0.1256,-4.6481 0.2513,-3.89436 0.3769,-5.52749 -0.1257,-2.63811 0.063,2.76374 -0.1885,5.02498 -0.5025,8.29122 0.063,8.35403 0.1257,8.10279 6.1556,-2.95218 5.6531,-3.14061 5.5274,-2.95218 5.716,-3.64311 3.8315,-3.26624 2.7638,-2.5753 0.8165,-2.01 -0.5025,-1.50749 -6.6581,-8.79372 c 0,0 -2.3869,-5.40186 -2.7009,-5.90435 -0.3141,-0.5025 -2.3241,-4.01999 -2.3241,-4.01999 l -3.6431,-5.15061 -3.4547,-5.21341 -3.7687,-4.77374 -4.4597,-3.5803 -8.354,-4.77373 -7.7259,-3.5803 -6.9722,-2.63812 -4.9621,-1.82155 -6.721,-1.82156 -3.3918,-0.75375 -10.1756,-1.50749 -4.7109,-0.5025 z"/>
+ <path style="opacity:1;fill:#bbbdc3;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" d="m 1251.5974,332.52819 2.7638,6.53248 1.6331,5.52748 1.2562,6.02998 1.2563,5.77873 1.5703,8.1656 0.6281,4.96217 0.063,4.27123 0.3141,5.77873 0.1884,3.70592 1.005,4.83655 0.2513,3.39186 0.5025,2.32406 0.8793,6.21841 0.7538,5.21342 0.8165,4.33405 0.8166,5.6531 0.9422,6.21842 0.8794,3.83155 0.9421,5.46467 1.005,4.71092 0.3141,4.01998 0.5653,3.26624 0.8794,5.46467 0.5653,4.45967 -0.1884,2.07281 -1.3191,1.25624 -4.9622,2.70093 -9.9243,3.0778 -12.8137,2.19843 -7.2862,1.31906 -10.05,0.31406 -10.9921,-0.37687 -8.2913,-0.94219 -6.9721,-1.44468 -2.1356,-0.87937 0.3768,-8.54247 -0.5025,-7.34904 -0.5653,-6.72091 -0.3769,-6.46967 -0.7537,-6.34404 -0.1884,-4.39686 -0.4397,-5.59029 -0.1885,-3.5803 -0.314,-3.32905 -0.2513,-4.0828 -0.4397,-2.82655 -1.1934,-10.55246 -0.3141,8.98215 -1.005,4.14561 -0.6909,7.41185 -0.5025,6.90935 -0.9422,6.34404 -0.1884,3.64312 -0.5025,6.02997 v 7.97716 l -0.5653,3.83155 -0.3141,2.51249 -0.1884,5.65311 v 4.71092 l -0.5653,2.13562 -2.8894,1.38187 -5.9672,1.00499 -5.5274,0.56531 -8.7938,0.37688 -5.7159,-0.18844 -6.2812,-0.31406 -6.1556,-0.87937 -5.9672,-0.87938 -3.2662,-0.56531 -4.7109,-1.00499 -5.0878,-1.13062 -4.2713,-1.25625 -2.8893,-1.13062 -2.701,-1.31906 -1.8843,-1.25624 -1.8844,-1.57031 -0.5653,-0.94218 0.3141,-3.39187 1.0678,-4.58529 0.6909,-4.64811 0.9422,-4.96217 1.0678,-5.15061 0.3769,-3.01499 1.0678,-5.46467 0.6281,-4.08279 0.9422,-5.46467 0.6281,-4.01999 0.6909,-4.0828 0.7538,-5.6531 0.8792,-8.1656 1.0678,-5.84154 v -4.77373 l 0.6909,-6.34404 0.063,-4.20842 0.7538,-4.71092 0.9422,-4.64811 0.5653,-3.76874 1.2562,-5.90435 0.9422,-3.70593 1.4447,-5.08779 0.8165,-3.01499 0.9422,-2.88937 1.3819,-2.19843 6.2184,1.19344 7.5375,1.50749 11.2434,1.57031 10.364,1.19343 9.6731,0.69094 6.7837,0.18843 15.6403,-0.0628 13.6302,-0.56531 9.4847,-0.5025 12.1228,-2.00999 15.8286,-4.45967"/>
+ <g id="leftArm" class="zone" onclick="selectZone('leftArm')"><path class="zone-fill" d="m 1113.4104,232.53105 -1.6331,6.40685 -1.2562,5.40186 -1.8844,6.6581 -0.6281,5.02498 -1.8844,7.78872 -1.8844,5.77873 -2.7637,7.78873 -1.6331,6.6581 -2.01,6.53247 -1.005,4.64811 -1.3819,7.78872 -0.5025,3.39187 -0.8794,5.27623 -0.1256,4.14561 -0.5025,3.76874 -1.005,8.29122 -0.6281,4.52248 -0.6281,4.89936 -0.3769,4.39686 -0.5025,2.63811 -1.8844,4.64811 -2.2612,4.52249 -2.2612,5.1506 -1.5075,4.14561 -1.5075,4.14561 -0.7538,2.38687 0.2513,5.52748 0.8793,5.52748 1.2563,4.01999 1.5075,3.76873 2.2612,4.14561 2.3869,2.13562 -2.1356,-1.50749 -1.8844,-3.14062 4.5225,3.89436 2.01,1.25625 2.6381,-0.25125 0.5025,-1.25625 0.2512,-2.26124 v -1.63312 l -1.2562,-1.50749 -1.6331,-0.75375 -1.5075,-1.25625 -0.3769,-2.00999 -0.3769,-2.38686 -0.2512,-2.5125 0.1256,-1.75874 1.005,-1.75874 -1.005,1.63312 0.6281,8.41684 1.005,1.25625 1.6331,0.87937 1.1307,0.87937 0.6281,1.005 -0.1256,1.88437 -0.1257,2.00999 -0.5025,0.87937 -1.3818,0.75375 -1.3819,-0.5025 -2.1356,-1.005 -3.6431,-3.26624 2.4372,3.16451 1.3325,1.51011 2.2652,2.13191 1.9098,1.4657 1.6878,0.39973 2.1319,0.17766 1.5101,-0.93271 0.089,-2.354 -0.3553,-2.26516 -0.2221,-2.57607 -0.755,-1.73218 -1.1992,-2.48724 -0.8883,-2.6649 -0.3553,-3.06464 0.1332,-3.2867 -0.089,3.19787 0.3109,3.37554 2.9758,6.70667 0.6218,4.88564 -0.2665,2.354 1.7766,-0.35532 0.7551,-1.90985 0.755,-2.93138 -0.8439,-3.81969 c 0,0 -0.7106,-3.68645 -0.7994,-3.86411 -0.089,-0.17766 -0.7995,-3.46437 -0.7995,-3.46437 l -0.3109,-3.41995 c 0,0 -0.2221,-1.68777 -0.2221,-1.86543 0,-0.17766 0.4442,-3.37554 0.4442,-3.37554 l 1.1103,-1.64335 1.5101,-1.28804 0.3554,-0.22207 0.222,3.59761 0.4886,2.26517 0.4441,2.70931 0.2665,2.22075 1.4657,2.53165 1.2881,0.5774 2.1763,0.17766 0.9771,-0.8883 0.8883,-1.7766 0.1777,-2.75373 -0.3109,-5.01889 0.089,-3.73086 0.3553,-3.86411 0.7551,-2.9758 0.044,-2.93139 c 0,0 -0.5774,-2.75373 -0.6662,-2.93139 -0.089,-0.17766 -1.1992,-3.28671 -1.1992,-3.28671 l -1.5545,-3.77527 -0.4442,-2.48724 0.533,-2.39841 2.6268,-6.07854 1.1929,-3.07095 1.9542,-5.77395 2.4873,-6.92873 2.2651,-5.77395 2.9758,-9.06066 2.132,-6.79549 2.9758,-10.48194 0.2665,-3.68644 3.2867,-12.16971 2.4872,-8.3056 1.8654,-4.26384 0.8439,-1.11038 1.3769,-9.23831 -0.1333,-8.66093 c 0,0 -12.525,-5.86277 -12.7027,-5.90719 -0.1776,-0.0444 -10.5108,-5.71094 -10.5108,-5.71094 z"/><path class="zone-fill" d="m 1101.2252,353.63213 0.1776,3.19788 -0.1776,2.75373 -0.7107,2.3984 -1.6877,3.28671 -1.6878,3.02022 -1.7766,2.30958 -1.9542,1.42128 -3.0203,1.7766 3.1091,-1.86543 2.1319,-1.33245 2.3096,-3.81969 2.1319,-3.81969 1.3324,-3.90851 -0.089,-3.90852 z"/><circle id="dot-leftArm" class="recent-dot" cx="29.3" cy="311.4" r="4.5" fill="var(--red)" style="display:none"/></g>
+ <g id="rightArm" class="zone" onclick="selectZone('rightArm')"><path class="zone-fill" d="m 1292.032,373.17472 -3.3756,-3.28671 -2.9314,-2.93139 -2.1319,-3.37554 -1.1548,-4.26383 -0.1776,-3.73086 v -1.33245 l 0.089,5.15214 0.7106,2.30957 0.533,2.13192 2.3096,3.28671 2.7537,2.84256 z"/><path class="zone-fill" d="m 1271.5717,232.15418 3.015,11.05496 0.7452,7.38022 2.7538,9.14948 3.109,10.03779 2.1319,6.30693 3.5532,12.16971 1.599,8.35001 1.4213,10.48194 2.1319,12.25854 0.6218,7.7282 0.7995,7.19523 1.1547,6.75108 0.3554,3.99735 5.0633,10.92609 2.1319,3.5532 1.3324,6.92873 0.7995,4.53033 0.1777,3.5532 -0.1777,5.3298 -2.3984,7.01757 -1.2436,3.10905 -1.9543,2.30958 -3.0202,1.7766 -2.1319,0.71063 -1.6878,-0.26649 -1.4213,-1.5101 -0.2665,-2.13192 1.4213,-1.95426 1.7766,-2.6649 1.1548,-2.48724 1.1548,-3.5532 v -2.30958 l -0.7106,-1.95426 0.6654,1.95021 0.094,2.35546 -1.1935,3.54889 -1.0678,2.41828 -3.2662,4.6167 0.1884,2.00999 1.4133,1.63312 1.7901,0.21984 2.2299,-0.69093 2.8579,-1.5389 -4.9621,3.89436 -3.3919,2.70093 -1.7273,0.43968 -1.5389,-1.22484 -0.9108,-2.16702 -0.2827,-3.45468 0.8166,-2.66952 1.8844,-3.76873 0.7537,-2.07281 0.9108,-2.51249 0.157,-2.16702 -0.031,2.16702 -1.6959,4.5853 -1.9786,3.83154 -0.848,2.5125 0.2199,3.5803 0.9736,2.0728 1.0678,0.94218 -2.01,-0.43968 -1.7588,-1.06781 -1.2876,-2.16702 -0.1571,-2.70093 0.848,-3.89436 1.0678,-2.48109 0.7224,-3.29764 0.7223,-2.44968 0.6281,-3.0778 -0.2198,-1.82156 -0.7852,-1.97859 -1.2248,-1.79014 -1.2563,-1.005 -0.8479,-0.43969 0.1884,0.78516 0.2513,1.5703 -0.3455,2.0414 -0.063,2.92077 -0.3769,1.94718 -1.162,2.10421 -1.7274,1.72734 -2.0414,0.69094 -2.1356,-1.31906 -1.2562,-2.32405 -0.2513,-2.22984 -0.2354,-2.1602 v -3.64203 l 0.3553,-2.6649 c 0.6546,-2.99617 0.1168,-4.71559 0.042,-6.49559 l -0.3401,-3.11906 0.3985,-2.08096 1.5075,-3.26624 0.7537,-3.51749 -1.2562,-6.02998 -0.5025,-6.28122 -2.2613,-5.77873 -3.5175,-9.54747 -2.7637,-8.54247 -2.01,-6.02998 -2.2612,-7.28622 -2.01,-8.29122 -1.5075,-8.29122 -3.5175,-11.05496 -2.5125,-7.53748 -2.2612,-4.01998 -1.005,-16.3312 -0.2513,-3.01498 2.5125,0.25124 5.7787,-4.27123 9.2963,-4.52248 z"/><circle id="dot-rightArm" class="recent-dot" cx="197.3" cy="311.3" r="4.5" fill="var(--red)" style="display:none"/></g>
+ <g id="leftLeg" class="zone" onclick="selectZone('leftLeg')"><path class="zone-fill" d="m 1137.656,464.18273 0.6281,4.64811 0.2512,4.89935 -0.6281,7.78873 v 3.89436 l -0.5025,7.1606 -0.8794,5.77873 0.2513,4.89935 0.3769,10.17559 1.5075,16.07995 1.1306,8.03997 1.2562,9.29621 0.8794,7.28623 1.005,5.02498 0.6281,8.91934 v 6.15561 l -0.7537,2.63811 -1.1307,2.63812 -1.1306,2.51249 0.5025,1.63312 0.1256,3.14061 0.1257,2.01 -0.1257,1.13062 -0.1256,-6.28123 -14.4468,12.18558 -3.5175,0.87937 -2.01,1.5075 -0.5025,2.26124 -0.3769,3.14061 2.1357,1.63312 5.1506,3.39186 4.02,0.87938 3.0149,-0.62813 4.02,0.37688 3.6431,1.50749 2.8894,1.38187 3.8944,1.005 h 6.1556 l 6.7837,-1.13062 4.1456,-1.38187 2.5125,-2.76374 0.7537,-3.14062 0.2513,-4.01998 -0.6281,-4.52249 -0.5025,-5.6531 -0.5025,-2.63812 -0.3769,-3.51748 0.2513,-1.75875 1.005,-2.76374 -1.2563,-3.14061 -0.5025,-2.76374 1.005,-14.69808 1.005,-4.39685 1.005,-8.6681 0.6281,-5.52748 1.5075,-9.42184 1.3819,-7.03498 1.1306,-5.90435 0.5025,-7.78872 -0.6281,-5.77873 0.5025,-13.56745 -0.3769,-6.6581 v -5.15061 l -0.1256,-5.65311 1.2562,-3.39186 0.6281,-4.89936 -2.8893,-0.12562 -4.8994,0.62812 -5.1506,0.25125 -10.0499,-0.12562 -6.1556,-1.005 z"/><circle id="dot-leftLeg" class="recent-dot" cx="69.2" cy="534.2" r="4.5" fill="var(--red)" style="display:none"/></g>
+ <g id="rightLeg" class="zone" onclick="selectZone('rightLeg')"><path class="zone-fill" d="m 1247.9543,463.68023 -0.6281,3.89436 v 6.40685 5.77873 l 0.6281,5.90436 0.3769,6.02997 -0.1256,9.42185 0.5025,7.03497 -1.005,12.56246 -0.7538,10.04996 -1.6331,12.18558 -1.6331,11.18059 -0.2513,7.6631 -1.005,7.78872 -0.2512,6.02998 0.8794,2.13561 1.1306,2.26125 0.3769,2.51249 -0.1257,2.26124 -0.5025,4.77373 0.7538,-5.90435 5.6531,5.15061 5.7787,4.89935 2.3869,2.38687 2.2612,1.005 1.8844,0.37687 1.8844,1.88437 0.2512,2.51249 -1.005,2.63811 -2.3869,1.5075 h -1.7587 l -1.3819,1.63312 -1.8843,0.75375 -2.3869,0.87937 -2.6381,0.12562 -2.2613,-0.12562 -2.1356,-0.12563 -2.3868,0.5025 -2.3869,1.63312 -2.6381,1.25625 -3.3919,0.50249 -5.025,0.5025 -6.0299,-0.37687 -3.015,-1.63312 -3.3919,-2.00999 -2.01,-2.38687 -0.5025,-3.76874 v -5.1506 l 0.6281,-3.51749 0.7538,-4.27124 v -3.39186 l -0.1256,-3.64311 -0.2513,-3.64311 0.5025,-3.39187 0.3769,-3.64311 v -4.01998 l -0.3769,-6.78373 -0.6281,-5.15061 -1.5075,-5.52748 -0.7538,-5.77873 -0.5025,-5.1506 -1.005,-6.02998 -0.7537,-5.15061 -0.6281,-5.6531 -1.005,-6.15561 -0.6281,-6.90935 -0.1257,-3.64311 v -4.77373 l 0.1257,-6.6581 0.1256,-4.27124 v -4.52248 l 0.3769,-2.26124 0.3768,-4.14561 -0.2512,-4.14561 -0.6281,-4.27124 -0.7538,-4.01999 -0.2512,-2.63811 2.8893,-0.12563 3.6431,0.25125 6.2813,0.37688 h 4.7737 8.04 l 6.7837,-1.13062 z"/><circle id="dot-rightLeg" class="recent-dot" cx="157.9" cy="534.1" r="4.5" fill="var(--red)" style="display:none"/></g>
+ <g id="rightButt" class="zone" onclick="selectZone('rightButt')" style="--zc:#bbbdc3;--zs:none"><path class="zone-fill" d="m 1192.4283,340.69379 -0.1257,36.05425 3.015,9.67309 6.1556,5.6531 9.9244,2.63812 10.3012,0.87937 7.1606,-0.62812 8.6681,-1.63312 9.1706,-3.89436 7.9143,-4.14561 4.8994,-3.64311 1.3818,-1.63312 -0.3768,-8.6681 -0.7538,-8.54247 -2.1356,-9.67309 -1.6331,-8.66809 -2.2613,-7.41185 -2.1356,-4.77373 -8.7937,2.63811 -10.8037,2.51249 -11.4318,1.75875 -16.3312,1.00499 -9.7987,-0.12562 z"/><circle id="dot-rightButt" class="recent-dot" cx="147.5" cy="359.4" r="4.5" fill="var(--red)" style="display:none"/></g>
+ <g id="leftButt" class="zone" onclick="selectZone('leftButt')" style="--zc:#bbbdc3;--zs:none"><path class="zone-fill" d="m 1192.177,348.23126 0.1256,29.1449 -1.3818,5.15061 -1.1306,3.51748 -4.1457,2.26125 -3.0149,1.75874 -10.6781,2.63812 -6.03,0.37687 -8.2912,0.62812 -5.2763,-0.5025 -8.5424,-3.26624 -7.7887,-4.01998 -3.9887,-3.70593 -1.7272,-2.1042 -2.5754,-4.23983 -2.2612,-4.14561 -1.005,-3.64312 2.1356,-13.56745 3.2662,-11.43183 3.1407,-8.1656 1.0049,-1.13062 12.3113,2.26124 13.4418,2.51249 17.3362,1.13062 7.0349,0.5025 7.1606,0.37688 1.005,-0.12563 z"/><circle id="dot-leftButt" class="recent-dot" cx="79.3" cy="359.2" r="4.5" fill="var(--red)" style="display:none"/></g>
+ </g>
 </svg>`;
 }
 function renderBody(){document.getElementById('bodyStage').innerHTML=bodySvg();updateRecentSites();if(selectedZone)document.getElementById(selectedZone)?.classList.add('selected')}
-function selectZone(id,name){selectedZone=id;zones.forEach(z=>document.getElementById(z)?.classList.remove('selected'));document.getElementById(id)?.classList.add('selected');document.getElementById('selectedSite').textContent=name}
+function selectZone(id){selectedZone=id;zones.forEach(z=>document.getElementById(z)?.classList.remove('selected'));document.getElementById(id)?.classList.add('selected');document.getElementById('selectedSite').textContent=zoneNames[id]}
 function updateRecentSites(){
   zones.forEach(z=>{document.getElementById(z)?.classList.remove('recent-1','recent-2');const d=document.getElementById('dot-'+z);if(d)d.style.display='none'});
   for(let days=1;days<=2;days++){
@@ -304,34 +568,34 @@ function loadRecordForDate(){
 }
 function loadIntoForm(r){
   editingId=r.id;document.getElementById('time').value=r.time||'20:00';document.getElementById('type').value=r.type||'medication';document.getElementById('vaccine').value=r.vaccine||'';document.getElementById('dose').value=r.dose||'';document.getElementById('notes').value=r.notes||'';
-  selectedZone=r.site||null;document.getElementById('selectedSite').textContent=r.siteLabel||zoneNames[r.site]||'None selected';
+  selectedZone=r.site||null;document.getElementById('selectedSite').textContent=r.siteLabel||zoneNames[r.site]||'Ninguno seleccionado';
   zones.forEach(z=>document.getElementById(z)?.classList.remove('selected'));if(r.site)document.getElementById(r.site)?.classList.add('selected');
-  document.getElementById('saveBtn').textContent='Save changes';
+  document.getElementById('saveBtn').textContent='Guardar registro';
 }
 function clearForm(resetButton=true){
   if(resetButton)editingId=null;document.getElementById('time').value='20:00';document.getElementById('type').value='medication';document.getElementById('vaccine').value='';document.getElementById('dose').value='';document.getElementById('notes').value='';
-  selectedZone=null;zones.forEach(z=>document.getElementById(z)?.classList.remove('selected'));document.getElementById('selectedSite').textContent='None selected';
-  if(resetButton)document.getElementById('saveBtn').textContent='Save record';
+  selectedZone=null;zones.forEach(z=>document.getElementById(z)?.classList.remove('selected'));document.getElementById('selectedSite').textContent='Ninguno seleccionado';
+  if(resetButton)document.getElementById('saveBtn').textContent='Guardar registro';
 }
 function saveRecord(){
-  if(!selectedZone){flash('Please select an injection site first.',true);return}
+  if(!selectedZone){flash('Por favor, selecciona un sitio de inyección primero.',true);return}
   const entry={id:editingId||uid(),date:iso(currentDate),time:document.getElementById('time').value||'20:00',type:document.getElementById('type').value,vaccine:document.getElementById('vaccine').value.trim(),dose:document.getElementById('dose').value.trim(),site:selectedZone,siteLabel:zoneNames[selectedZone],notes:document.getElementById('notes').value.trim()};
-  if(editingId)records=records.map(r=>r.id===editingId?entry:r);else records.push(entry);
-  records.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));persist();editingId=null;document.getElementById('saveBtn').textContent='Save record';renderDate();renderHistory();flash('Record saved successfully.');
+  if(editingId){records=records.map(r=>r.id===editingId?entry:r);}else{records.push(entry);const consumed=consumeInventoryForRecord(entry.vaccine);if(consumed&&consumed.quantity===0)flash(`Registro guardado. ${consumed.name} se quedó en 0 ${consumed.unit}.`);}
+  records.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));persist();editingId=null;document.getElementById('saveBtn').textContent='Guardar registro';renderDate();renderHistory();renderInventorySummary();if(!document.getElementById('status').classList.contains('show'))flash('Registro guardado correctamente.');
 }
 function flash(msg,error=false){const s=document.getElementById('status');s.textContent=msg;s.style.background=error?'var(--red-soft)':'var(--green-soft)';s.style.color=error?'#a64c4c':'#4d7c61';s.classList.add('show');setTimeout(()=>s.classList.remove('show'),3000)}
 function toggleHistory(){const p=document.getElementById('historyPanel');p.classList.toggle('open');if(p.classList.contains('open')){renderHistory();setTimeout(()=>p.scrollIntoView({behavior:'smooth',block:'start'}),20)}}
 function renderHistory(){
-  const el=document.getElementById('historyList');if(!records.length){el.innerHTML='<div class="empty">No records yet. Your saved injections will appear here.</div>';return}
+  const el=document.getElementById('historyList');if(!records.length){el.innerHTML='<div class="empty">Aún no hay registros. Tus inyecciones guardadas aparecerán aquí.</div>';return}
   const groups={};[...records].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)).forEach(r=>(groups[r.date]??=[]).push(r));
-  el.innerHTML=Object.entries(groups).map(([date,rs])=>`<div class="history-day"><div class="history-day-head"><strong>${dateFrom(date).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</strong><span>${rs.length} record${rs.length===1?'':'s'}</span></div>${rs.map(r=>`<div class="record-row"><div class="record-time">${formatTime(r.time)}</div><div class="record-main"><strong>${esc(r.vaccine||'Untitled record')}</strong><small>${r.type==='vaccine'?'Vaccine':'Medication / hormone'}${r.dose?' · '+esc(r.dose):''}${r.notes?' · '+esc(r.notes):''}</small></div><span class="site-badge">${esc(r.siteLabel||'Site not set')}</span><div class="record-actions"><button class="mini-btn" onclick="editRecord('${r.id}')">Edit</button><button class="mini-btn delete" onclick="deleteRecord('${r.id}')">Delete</button></div></div>`).join('')}</div>`).join('');
+  el.innerHTML=Object.entries(groups).map(([date,rs])=>`<div class="history-day"><div class="history-day-head"><strong>${dateFrom(date).toLocaleDateString('es-ES',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</strong><span>${rs.length} registro${rs.length===1?'':'s'}</span></div>${rs.map(r=>`<div class="record-row"><div class="record-time">${formatTime(r.time)}</div><div class="record-main"><strong>${esc(r.vaccine||'Registro sin título')}</strong><small>${r.type==='vaccine'?'Vacuna':'Medicación / hormona'}${r.dose?' · '+esc(r.dose):''}${r.notes?' · '+esc(r.notes):''}</small></div><span class="site-badge">${esc(r.siteLabel||'Sitio no especificado')}</span><div class="record-actions"><button class="mini-btn" onclick="editRecord('${r.id}')">Editar</button><button class="mini-btn delete" onclick="deleteRecord('${r.id}')">Eliminar</button></div></div>`).join('')}</div>`).join('');
 }
 function formatTime(t){if(!t)return '';const [h,m]=t.split(':').map(Number);const ap=h>=12?'PM':'AM',hh=(h%12)||12;return `${hh}:${String(m).padStart(2,'0')} ${ap}`}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
 function deleteRecord(id){
   const r=records.find(x=>x.id===id);if(!r)return;
-  if(!confirm(`Delete the ${r.type==='vaccine'?'vaccine':'medication'} record from ${fmtDate(dateFrom(r.date))}?`))return;
-  records=records.filter(x=>x.id!==id);persist();renderDate();renderHistory();flash('Record deleted.');
+  if(!confirm(`¿Eliminar el registro de ${r.type==='vaccine'?'vacuna':'medicación'} del ${fmtDate(dateFrom(r.date))}?`))return;
+  records=records.filter(x=>x.id!==id);persist();restoreInventoryForRecord(r.vaccine);renderDate();renderHistory();renderInventorySummary();flash('Registro eliminado. La unidad consumida fue devuelta al inventario si existía coincidencia.');
 }
 function editRecord(id){
   const r=records.find(x=>x.id===id);if(!r)return;editingId=id;
@@ -344,12 +608,24 @@ function updateRecord(){
   const id=document.getElementById('editId').value,r=records.find(x=>x.id===id);if(!r)return;
   const site=document.getElementById('editSite').value;
   Object.assign(r,{date:document.getElementById('editDate').value,time:document.getElementById('editTime').value,type:document.getElementById('editType').value,vaccine:document.getElementById('editName').value.trim(),dose:document.getElementById('editDose').value.trim(),site,siteLabel:zoneNames[site],notes:document.getElementById('editNotes').value.trim()});
-  records.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));persist();closeEdit();currentDate=dateFrom(r.date);calendarMonth=new Date(currentDate.getFullYear(),currentDate.getMonth(),1);renderDate();renderHistory();flash('Record updated.');
+  records.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));persist();closeEdit();currentDate=dateFrom(r.date);calendarMonth=new Date(currentDate.getFullYear(),currentDate.getMonth(),1);renderDate();renderHistory();flash('Registro actualizado.');
 }
-function exportJSON(){download('diego-medical-history.json',JSON.stringify({patient:'Diego',exportedAt:new Date().toISOString(),records},null,2),'application/json')}
+function csvString(rows){return rows.map(row=>row.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n')}
+function exportJSON(){
+  if(currentTab==='inventario'){download('diego-inventario.json',JSON.stringify({patient:'Diego',exportedAt:new Date().toISOString(),inventory},null,2),'application/json');return}
+  download('diego-medical-history.json',JSON.stringify({patient:'Diego',exportedAt:new Date().toISOString(),records},null,2),'application/json')
+}
 function exportCSV(){
-  const rows=[['Date','Time','Type','Vaccine / medication','Dose','Injection site','Notes'],...records.map(r=>[r.date,r.time,r.type,r.vaccine,r.dose,r.siteLabel,r.notes])];
-  download('diego-medical-history.csv',rows.map(row=>row.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\\n'),'text/csv')
+  if(currentTab==='inventario'){const rows=[['Medicamento / vacuna','Tipo','Cantidad','Unidad'],...inventory.map(i=>[i.name,inventoryTypeLabel(i.type),i.quantity,i.unit])];download('diego-inventario.csv',csvString(rows),'text/csv');return}
+  const rows=[['Fecha','Hora','Tipo','Vacuna / medicación','Dosis','Sitio de inyección','Notas'],...records.map(r=>[r.date,r.time,r.type,r.vaccine,r.dose,r.siteLabel,r.notes])];download('diego-medical-history.csv',csvString(rows),'text/csv')
+}
+function exportPDF(){
+  document.getElementById('exportOptions').classList.remove('open');
+  if(currentTab==='inventario')buildInventoryPrintReport();else buildPrintReport();
+  window.print();
+}
+function buildInventoryPrintReport(){
+  document.getElementById('printReport').innerHTML=`<div class="print-header"><div class="print-title">Vacunas Diego</div><div class="print-meta">Inventario de medicamentos y vacunas<br>Generado el ${new Date().toLocaleString()}</div></div><div class="print-summary"><div class="print-box"><b>${inventory.length}</b><span>Artículos</span></div><div class="print-box"><b>${inventory.reduce((a,i)=>a+Number(i.quantity||0),0)}</b><span>Unidades totales</span></div><div class="print-box"><b>${inventory.filter(i=>i.quantity===0).length}</b><span>Sin existencias</span></div></div><div class="print-day"><div class="print-day-head">Existencias actuales</div>${inventory.length?inventory.map(i=>`<div class="print-record"><strong>${esc(i.name)}</strong><div>${esc(inventoryTypeLabel(i.type))}</div><div class="site">${i.quantity} ${esc(i.unit)}</div></div>`).join(''):'<div class="empty">No hay artículos en el inventario.</div>'}</div><div class="print-footer">Inventario independiente del historial de inyecciones.</div>`;
 }
 function download(name,data,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function exportPDF(){
@@ -358,49 +634,54 @@ function exportPDF(){
 function buildPrintReport(){
   const sorted=[...records].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)),groups={};sorted.forEach(r=>(groups[r.date]??=[]).push(r));
   const vaccines=records.filter(r=>r.type==='vaccine').length,meds=records.filter(r=>r.type!=='vaccine').length,days=new Set(records.map(r=>r.date)).size;
-  document.getElementById('printReport').innerHTML=`<div class="print-header"><div class="print-title">Vacunas Diego</div><div class="print-meta">Medical & injection history<br>Generated ${new Date().toLocaleString()}</div></div>
-  <div class="print-summary"><div class="print-box"><b>${records.length}</b><span>Total records</span></div><div class="print-box"><b>${vaccines}</b><span>Vaccines</span></div><div class="print-box"><b>${meds}</b><span>Medication records</span></div></div>
-  ${Object.entries(groups).map(([date,rs])=>`<div class="print-day"><div class="print-day-head">${esc(dateFrom(date).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'}))}</div>${rs.map(r=>`<div class="print-record"><strong>${formatTime(r.time)}</strong><div><b>${esc(r.vaccine||'Untitled record')}</b> · ${r.type==='vaccine'?'Vaccine':'Medication / hormone'}${r.dose?' · '+esc(r.dose):''}${r.notes?`<div class="print-note">${esc(r.notes)}</div>`:''}</div><div class="site">${esc(r.siteLabel||'Site not set')}</div></div>`).join('')}</div>`).join('')}
-  <div class="print-footer">This report is a personal tracking record and does not replace official medical records maintained by the child's healthcare provider.</div>`;
+  document.getElementById('printReport').innerHTML=`<div class="print-header"><div class="print-title">Vacunas Diego</div><div class="print-meta">Historial médico y de inyecciones<br>Generado el ${new Date().toLocaleString()}</div></div>
+  <div class="print-summary"><div class="print-box"><b>${records.length}</b><span>Registros totales</span></div><div class="print-box"><b>${vaccines}</b><span>Vacunas</span></div><div class="print-box"><b>${meds}</b><span>Registros de medicación</span></div></div>
+  ${Object.entries(groups).map(([date,rs])=>`<div class="print-day"><div class="print-day-head">${esc(dateFrom(date).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'}))}</div>${rs.map(r=>`<div class="print-record"><strong>${formatTime(r.time)}</strong><div><b>${esc(r.vaccine||'Registro sin título')}</b> · ${r.type==='vaccine'?'Vacuna':'Medicación / hormona'}${r.dose?' · '+esc(r.dose):''}${r.notes?`<div class="print-note">${esc(r.notes)}</div>`:''}</div><div class="site">${esc(r.siteLabel||'Sitio no especificado')}</div></div>`).join('')}</div>`).join('')}
+  <div class="print-footer">Este reporte es un registro personal de seguimiento y no reemplaza los registros médicos oficiales mantenidos por el proveedor de salud del niño.</div>`;
 }
 function openImport(){document.getElementById('fileInput').click()}
-document.getElementById('fileInput').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{pendingImport=await parseImport(f);showImportPreview()}catch(err){alert(err.message||'Could not read this file.')}e.target.value=''});
+document.getElementById('fileInput').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{pendingImport=await parseImport(f);showImportPreview()}catch(err){alert(err.message||'No se pudo leer este archivo.')}e.target.value=''});
 async function parseImport(file){
   const text=await file.text();let incoming=[];
   if(file.name.toLowerCase().endsWith('.json')){
     const raw=JSON.parse(text);incoming=Array.isArray(raw)?raw:(raw.records||[]);
   }else{
-    const rows=parseCSV(text);if(!rows.length)throw new Error('The CSV file contains no records.');
+    const rows=parseCSV(text);if(!rows.length)throw new Error('El archivo CSV no contiene registros.');
     const headers=rows[0].map(x=>x.trim().toLowerCase());const find=(...names)=>{for(const n of names){const i=headers.indexOf(n);if(i>=0)return i}return -1};
     const idx={date:find('date','fecha'),time:find('time','hora'),type:find('type','tipo'),vaccine:find('vaccine / medication','vaccine','medication','vacuna','medicamento'),dose:find('dose','dosis'),site:find('injection site','site','sitio'),notes:find('notes','note','notas')};
     incoming=rows.slice(1).map(row=>({date:row[idx.date],time:idx.time>=0?row[idx.time]:'20:00',type:idx.type>=0?row[idx.type]:'medication',vaccine:idx.vaccine>=0?row[idx.vaccine]:'',dose:idx.dose>=0?row[idx.dose]:'',siteLabel:idx.site>=0?row[idx.site]:'',notes:idx.notes>=0?row[idx.notes]:''}));
   }
   const valid=[],invalid=[];
-  incoming.forEach((r,i)=>{const n=normalizeRecord(r);if(n&&/^\\d{4}-\\d{2}-\\d{2}$/.test(n.date)&&n.time)valid.push(n);else invalid.push(i+1)});
+  incoming.forEach((r,i)=>{const n=normalizeRecord(r);if(n&&/^\d{4}-\d{2}-\d{2}$/.test(n.date)&&n.time)valid.push(n);else invalid.push(i+1)});
   return {valid,invalid};
 }
 function parseCSV(text){
   const rows=[];let row=[],cell='',q=false;
-  for(let i=0;i<text.length;i++){const c=text[i],next=text[i+1];if(c==='"'&&q&&next==='"'){cell+='"';i++}else if(c==='"'){q=!q}else if(c===','&&!q){row.push(cell);cell=''}else if((c==='\\n'||c==='\\r')&&!q){if(c==='\\r'&&next==='\\n')i++;row.push(cell);if(row.some(x=>x!=='') )rows.push(row);row=[];cell=''}else cell+=c}
+  for(let i=0;i<text.length;i++){const c=text[i],next=text[i+1];if(c==='"'&&q&&next==='"'){cell+='"';i++}else if(c==='"'){q=!q}else if(c===','&&!q){row.push(cell);cell=''}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&next==='\n')i++;row.push(cell);if(row.some(x=>x!=='') )rows.push(row);row=[];cell=''}else cell+=c}
   if(cell!==''||row.length){row.push(cell);rows.push(row)}return rows;
 }
 function showImportPreview(){
   const incoming=pendingImport.valid,existing=incoming.filter(n=>records.some(r=>sameRecord(r,n))).length;
   document.getElementById('importNew').textContent=incoming.length-existing;document.getElementById('importExisting').textContent=existing;document.getElementById('importInvalid').textContent=pendingImport.invalid.length;
-  const preview=incoming.slice(0,12);document.getElementById('importPreview').innerHTML=preview.length?`<table><thead><tr><th>Date</th><th>Time</th><th>Record</th><th>Site</th><th>Notes</th></tr></thead><tbody>${preview.map(r=>`<tr><td>${esc(r.date)}</td><td>${esc(formatTime(r.time))}</td><td>${esc(r.vaccine)}</td><td>${esc(r.siteLabel||zoneNames[r.site]||'')}</td><td>${esc(r.notes)}</td></tr>`).join('')}</tbody></table>${incoming.length>12?`<div style="padding:9px;color:#72828d;font-size:10px">Showing first 12 of ${incoming.length} valid records.</div>`:''}`:'<div class="empty">No valid records were found.</div>';
+  const preview=incoming.slice(0,12);document.getElementById('importPreview').innerHTML=preview.length?`<table><thead><tr><th>Fecha</th><th>Hora</th><th>Registro</th><th>Sitio</th><th>Notas</th></tr></thead><tbody>${preview.map(r=>`<tr><td>${esc(r.date)}</td><td>${esc(formatTime(r.time))}</td><td>${esc(r.vaccine)}</td><td>${esc(r.siteLabel||zoneNames[r.site]||'')}</td><td>${esc(r.notes)}</td></tr>`).join('')}</tbody></table>${incoming.length>12?`<div style="padding:9px;color:#72828d;font-size:10px">Mostrando los primeros 12 de ${incoming.length} registros válidos.</div>`:''}`:'<div class="empty">No se encontraron registros válidos.</div>';
   document.getElementById('confirmImport').disabled=!incoming.length;document.getElementById('importModal').classList.add('open');
 }
 function sameRecord(a,b){return a.date===b.date&&a.time===b.time&&a.vaccine===b.vaccine&&a.site===b.site&&a.notes===b.notes}
 function confirmImport(){
   if(!pendingImport)return;let added=0;
   pendingImport.valid.forEach(n=>{if(!records.some(r=>sameRecord(r,n))){records.push(n);added++}});
-  records.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));persist();closeImport();pendingImport=null;renderDate();renderHistory();flash(`${added} new record${added===1?'':'s'} imported.`);
+  records.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));persist();closeImport();pendingImport=null;renderDate();renderHistory();flash(`${added} registro${added===1?'':'s'} nuevo${added===1?'':'s'} importado${added===1?'':'s'}.`);
 }
 function closeImport(){document.getElementById('importModal').classList.remove('open')}
 document.getElementById('exportBtn').onclick=()=>document.getElementById('exportOptions').classList.toggle('open');
 document.addEventListener('click',e=>{if(!e.target.closest('.export-menu'))document.getElementById('exportOptions').classList.remove('open')});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeImport();closeEdit();document.getElementById('calendar').classList.remove('open')}});
-renderBody();renderDate();renderHistory();
+initAuth();
+renderExportLabels();renderInventorySummary();renderInventory();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(err=>console.warn('Service worker registration failed:',err))});
+}
 </script>
 </body>
 </html>
