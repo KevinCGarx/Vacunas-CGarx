@@ -68,6 +68,7 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
 
 
 .hidden{display:none!important}
+.btn.locked{opacity:.38;filter:grayscale(1) saturate(0);pointer-events:none;box-shadow:none;transition:opacity .35s ease,filter .35s ease}
 .tabs{display:flex;gap:6px;background:#edf3f4;border:1px solid var(--line);border-radius:14px;padding:4px;margin-bottom:18px;box-shadow:0 4px 14px rgba(37,55,68,.04)}
 .tab-btn{flex:1;border:0;background:transparent;color:var(--muted);border-radius:10px;padding:11px 16px;font-size:13px;font-weight:850;transition:.15s}
 .tab-btn:hover{color:var(--ink);background:#f7faf9}.tab-btn.active{background:#fff;color:var(--blue);box-shadow:0 3px 10px rgba(37,55,68,.08)}
@@ -76,6 +77,9 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
 .inventory-layout{display:grid;grid-template-columns:330px minmax(0,1fr);gap:22px}
 .inventory-list{display:flex;flex-direction:column;gap:9px}.inventory-item{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:13px 15px;background:#fff}.inventory-main strong{font-size:13px}.inventory-main small{display:block;color:var(--muted);font-size:11px;margin-top:4px}.inventory-qty{text-align:right;min-width:72px}.inventory-qty b{display:block;font-size:19px;color:var(--blue)}.inventory-qty span{font-size:10px;color:var(--muted)}.inventory-actions{display:flex;gap:4px}.inventory-total{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:13px}.inventory-pill{background:var(--blue-soft);color:#426f82;border-radius:99px;padding:7px 10px;font-size:11px;font-weight:800}
 .inventory-summary{margin-top:22px}.inventory-summary .card{padding:15px}.inventory-summary-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.inventory-summary-head strong{font-size:12px;text-transform:uppercase;letter-spacing:1.1px;color:var(--muted)}.inventory-mini-list{display:flex;gap:7px;flex-wrap:wrap}.inventory-mini{background:#f5f8f7;border:1px solid var(--line);border-radius:10px;padding:7px 9px;font-size:11px}.inventory-mini b{color:var(--blue)}
+.measurement-alert{margin:0 0 18px;border:1px solid #efd9b0;background:#fff9ef;color:#85652f;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:12px}.measurement-alert strong{font-size:12px}.measurement-alert.hidden{display:none!important}.measurement-card{margin-bottom:18px}.measurement-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}.measurement-card-head h2{margin:0;font-size:18px}.measurement-card-head p{margin:4px 0 0;color:var(--muted);font-size:12px}.measurement-current{display:flex;gap:9px;flex-wrap:wrap}.measurement-pill{background:#f5f8f7;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:11px}.measurement-pill b{color:var(--blue)}.measurement-layout{display:grid;grid-template-columns:330px minmax(0,1fr);gap:22px}.measurement-list{display:flex;flex-direction:column;gap:9px}.measurement-item{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:13px 15px;background:#fff}.measurement-main strong{font-size:13px}.measurement-main small{display:block;color:var(--muted);font-size:11px;margin-top:4px}.measurement-values{text-align:right;min-width:145px}.measurement-values b{display:block;font-size:13px;color:var(--blue)}.measurement-values span{font-size:10px;color:var(--muted)}.measurement-actions{display:flex;gap:4px}.measurement-status{margin-top:13px}.measurement-empty{padding:22px 10px}.measurement-history{margin-top:18px}.measurement-history-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.measurement-history-head strong{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+@media(max-width:820px){.measurement-layout{grid-template-columns:1fr}.measurement-item{grid-template-columns:1fr auto}.measurement-actions{grid-column:1/3;justify-content:flex-end}}
+@media(max-width:540px){.measurement-item{grid-template-columns:1fr}.measurement-values{text-align:left}.measurement-actions{grid-column:auto;justify-content:flex-end}}
 @media(max-width:820px){.inventory-layout{grid-template-columns:1fr}.inventory-item{grid-template-columns:1fr auto}.inventory-actions{grid-column:1/3;justify-content:flex-end}}
 @media(max-width:540px){.tabs{margin-bottom:14px}.tab-btn{padding:10px 8px;font-size:12px}.inventory-item{grid-template-columns:1fr}.inventory-qty{text-align:left}.inventory-actions{grid-column:auto;justify-content:flex-end}}
 
@@ -98,10 +102,14 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
 
 @media(max-width:820px){.topbar{align-items:flex-start;flex-direction:column}.actions{justify-content:flex-start}.layout{grid-template-columns:1fr}.body-card{min-height:620px}.record-row{grid-template-columns:65px 1fr auto}.site-badge{grid-column:2}.record-actions{grid-column:3;grid-row:1/3}}
 @media(max-width:540px){.app{padding:18px 12px 35px}.brand h1{font-size:25px}.date-main{min-width:180px}.date{font-size:18px}.actions .btn{font-size:12px;padding:9px 10px}.body-card{padding:15px}svg{width:96%;height:430px}.legend{justify-content:flex-start}.record-row{grid-template-columns:58px 1fr}.record-actions{grid-column:1/3;grid-row:auto;justify-content:flex-end}.site-badge{grid-column:2}.import-summary{grid-template-columns:1fr 1fr 1fr}}
-.app{display:none}.app.show{display:block}
-#authScreen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;z-index:200;background:linear-gradient(160deg,#2f5f75 0%,#4c8298 42%,#7fb0bd 100%)}
+.app{display:none;opacity:0;transform:translateY(22px) scale(.985);transition:opacity .6s cubic-bezier(.16,.8,.3,1),transform .6s cubic-bezier(.16,.8,.3,1)}
+.app.pre-show{display:block}
+.app.show{opacity:1;transform:none}
+#authScreen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;z-index:200;background:linear-gradient(160deg,#2f5f75 0%,#4c8298 42%,#7fb0bd 100%);transition:opacity .5s ease}
+#authScreen.leaving{opacity:0;pointer-events:none}
 #authScreen.hide{display:none}
-.auth-card{width:min(380px,100%);background:#fff;border-radius:22px;box-shadow:0 30px 70px rgba(15,35,45,.35);padding:34px 30px 28px;text-align:center;animation:auth-in .35s ease}
+.auth-card{width:min(380px,100%);background:#fff;border-radius:22px;box-shadow:0 30px 70px rgba(15,35,45,.35);padding:34px 30px 28px;text-align:center;animation:auth-in .35s ease;transition:opacity .45s ease,transform .45s cubic-bezier(.4,0,.2,1)}
+#authScreen.leaving .auth-card{opacity:0;transform:translateY(-18px) scale(.94)}
 @keyframes auth-in{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
 .auth-avatar{width:78px;height:78px;border-radius:50%;margin:0 auto 14px;background:linear-gradient(160deg,var(--blue),#6fa3b5);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px rgba(76,130,152,.35)}
 .auth-avatar svg{width:38px;height:38px;stroke:#fff}
@@ -187,6 +195,7 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
 <nav class="tabs" aria-label="Secciones principales">
   <button class="tab-btn active" id="tabRegistro" onclick="switchTab('registro')">Registro</button>
   <button class="tab-btn" id="tabInventario" onclick="switchTab('inventario')">Inventario</button>
+  <button class="tab-btn" id="tabMedidas" onclick="switchTab('medidas')">Peso y talla</button>
 </nav>
 
 <div class="tab-panel active" id="panelRegistro">
@@ -201,6 +210,15 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
       <div class="cal-grid" id="calGrid"></div>
     </div>
   </div>
+</div>
+
+<div class="measurement-alert" id="measurementAlert"></div>
+
+<div class="card measurement-card">
+  <div class="measurement-card-head">
+    <div><h2>Control mensual</h2><p>Último registro de peso y talla, y estado del mes actual.</p></div>
+  </div>
+  <div class="measurement-current" id="measurementCurrent"></div>
 </div>
 
 <div class="inventory-summary">
@@ -302,6 +320,35 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
   </div>
 </div>
 
+<div class="tab-panel" id="panelMedidas">
+  <div class="inventory-head">
+    <div><h2>Peso y talla</h2><p>Registra una medición de peso y estatura una vez al mes para llevar su seguimiento.</p></div>
+  </div>
+  <div class="measurement-layout">
+    <section class="card">
+      <div class="section-title" id="measurementFormTitle">Agregar medición mensual</div>
+      <input id="measurementId" type="hidden">
+      <label for="measurementMonth">Mes</label>
+      <input id="measurementMonth" type="month">
+      <label for="measurementWeight">Peso (kg)</label>
+      <input id="measurementWeight" type="number" min="0" step="0.01" placeholder="Ejemplo: 18.5">
+      <label for="measurementHeight">Estatura (cm)</label>
+      <input id="measurementHeight" type="number" min="0" step="0.1" placeholder="Ejemplo: 105.5">
+      <label for="measurementDate">Fecha de medición <span style="font-weight:500;color:#9aa5aa">(opcional)</span></label>
+      <input id="measurementDate" type="date">
+      <div class="save-row">
+        <button class="btn" onclick="clearMeasurementForm()">Resetear</button>
+        <button class="btn primary" id="measurementSaveBtn" onclick="saveMeasurement()">Guardar medición</button>
+      </div>
+      <div class="status measurement-status" id="measurementStatus"></div>
+    </section>
+    <section class="card">
+      <div class="measurement-history-head"><strong>Historial mensual</strong></div>
+      <div class="measurement-list" id="measurementList"></div>
+    </section>
+  </div>
+</div>
+
 <div class="modal-backdrop" id="importModal">
   <div class="modal">
     <h2>Importar historial medico</h2>
@@ -332,6 +379,7 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
 </div>
 
 <div id="printReport"></div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
@@ -389,8 +437,8 @@ async function handleLogout(){
   if(sb)await sb.auth.signOut();
   currentUser=null;
   document.getElementById('userChipMenu').classList.remove('open');
-  document.getElementById('appRoot').classList.remove('show');
-  document.getElementById('authScreen').classList.remove('hide');
+  document.getElementById('appRoot').classList.remove('show','pre-show');
+  document.getElementById('authScreen').classList.remove('hide','leaving');
   document.getElementById('loginForm').reset();
 }
 
@@ -402,9 +450,13 @@ function onLoggedIn(user){
   document.getElementById('userInitials').textContent=(email[0]||'?').toUpperCase();
   document.getElementById('userEmailShort').textContent=email.split('@')[0];
   document.getElementById('userEmailFull').textContent=email;
-  document.getElementById('authScreen').classList.add('hide');
-  document.getElementById('appRoot').classList.add('show');
   renderBody();renderDate();renderHistory();
+  const authScreen=document.getElementById('authScreen'),appRoot=document.getElementById('appRoot');
+  authScreen.classList.add('leaving');
+  appRoot.classList.add('pre-show');
+  appRoot.offsetHeight;
+  appRoot.classList.add('show');
+  setTimeout(()=>{authScreen.classList.add('hide');authScreen.classList.remove('leaving')},500);
 }
 
 async function initAuth(){
@@ -414,7 +466,7 @@ async function initAuth(){
   const {data:{session}}=await sb.auth.getSession();
   if(session)onLoggedIn(session.user);
   sb.auth.onAuthStateChange((event,session)=>{
-    if(event==='SIGNED_OUT'){currentUser=null;document.getElementById('appRoot').classList.remove('show');document.getElementById('authScreen').classList.remove('hide')}
+    if(event==='SIGNED_OUT'){currentUser=null;document.getElementById('appRoot').classList.remove('show','pre-show');document.getElementById('authScreen').classList.remove('hide','leaving')}
   });
 }
 
@@ -426,10 +478,20 @@ const zones=['leftArm','rightArm','leftLeg','rightLeg','leftButt','rightButt'];
 const zoneNames={leftArm:'Brazo izquierdo',rightArm:'Brazo derecho',leftLeg:'Pierna izquierda',rightLeg:'Pierna derecha',leftButt:'Glúteo izquierdo',rightButt:'Glúteo derecho'};
 let currentDate=new Date();currentDate.setHours(12,0,0,0);
 let calendarMonth=new Date(currentDate.getFullYear(),currentDate.getMonth(),1);
-let selectedZone=null,bodyView='front',editingId=null,pendingImport=null,currentTab='registro';
+let selectedZone=null,bodyView='front',editingId=null,pendingImport=null,currentTab='registro',editingMeasurementId=null;
 let records=JSON.parse(localStorage.getItem('diegoHealthRecords')||'[]');
 records=records.map(normalizeRecord).filter(Boolean);
 let inventory=JSON.parse(localStorage.getItem('diegoMedicineInventory')||'[]').map(normalizeInventoryItem).filter(Boolean);
+let measurements=JSON.parse(localStorage.getItem('diegoMeasurements')||'[]').map(normalizeMeasurement).filter(Boolean);
+
+function normalizeMeasurement(m){
+  if(!m||!/^\d{4}-\d{2}$/.test(String(m.month||'')))return null;
+  const weight=Number(m.weight),height=Number(m.height);
+  if(!Number.isFinite(weight)||weight<0||!Number.isFinite(height)||height<0)return null;
+  return {id:m.id||measurementUid(),month:String(m.month),weight,height,date:m.date||''};
+}
+function measurementUid(){return 'm_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7)}
+function persistMeasurements(){localStorage.setItem('diegoMeasurements',JSON.stringify(measurements))}
 
 function inventoryUid(){return 'i_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7)}
 function normalizeInventoryItem(i){
@@ -441,19 +503,62 @@ function switchTab(tab){
   currentTab=tab;
   document.getElementById('panelRegistro').classList.toggle('active',tab==='registro');
   document.getElementById('panelInventario').classList.toggle('active',tab==='inventario');
+  document.getElementById('panelMedidas').classList.toggle('active',tab==='medidas');
   document.getElementById('tabRegistro').classList.toggle('active',tab==='registro');
   document.getElementById('tabInventario').classList.toggle('active',tab==='inventario');
-  document.getElementById('importFileButton')?.classList.toggle('hidden',tab!=='registro');
-  document.getElementById('historyButton')?.classList.toggle('hidden',tab!=='registro');
+  document.getElementById('tabMedidas').classList.toggle('active',tab==='medidas');
+  document.getElementById('importFileButton')?.classList.toggle('locked',tab!=='registro');
+  document.getElementById('importFileButton')?.setAttribute('aria-disabled',tab!=='registro');
+  document.getElementById('historyButton')?.classList.toggle('locked',tab!=='registro');
+  document.getElementById('historyButton')?.setAttribute('aria-disabled',tab!=='registro');
   renderExportLabels();
-  if(tab==='inventario')renderInventory(); else renderInventorySummary();
+  if(tab==='inventario')renderInventory();
+  else if(tab==='medidas')renderMeasurements();
+  else {renderInventorySummary();renderMeasurementSummary();}
 }
 function renderExportLabels(){
-  const inv=currentTab==='inventario';
-  document.getElementById('exportCsvBtn').textContent=inv?'Exportar inventario a CSV':'Exportar historial a CSV';
-  document.getElementById('exportJsonBtn').textContent=inv?'Exportar inventario a JSON':'Exportar historial a JSON';
-  document.getElementById('exportPdfBtn').textContent=inv?'Exportar inventario a PDF':'Exportar historial a PDF';
+  const inv=currentTab==='inventario',med=currentTab==='medidas';
+  document.getElementById('exportCsvBtn').textContent=inv?'Exportar inventario a CSV':med?'Exportar peso y talla a CSV':'Exportar historial a CSV';
+  document.getElementById('exportJsonBtn').textContent=inv?'Exportar inventario a JSON':med?'Exportar peso y talla a JSON':'Exportar historial a JSON';
+  document.getElementById('exportPdfBtn').textContent=inv?'Exportar inventario a PDF':med?'Exportar peso y talla a PDF':'Exportar historial a PDF';
 }
+function measurementMonthLabel(month){const [y,m]=month.split('-').map(Number);return new Date(y,m-1,1,12).toLocaleDateString('es-ES',{month:'long',year:'numeric'})}
+function currentMonthKey(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`}
+function renderMeasurementSummary(){
+  const alert=document.getElementById('measurementAlert'),current=document.getElementById('measurementCurrent');if(!alert||!current)return;
+  const month=currentMonthKey(),entry=measurements.find(m=>m.month===month);
+  if(entry){alert.classList.add('hidden');alert.innerHTML='';}
+  else{alert.classList.remove('hidden');alert.innerHTML=`<span>⚠</span><strong>No hay registro de peso y talla para ${esc(measurementMonthLabel(month))}.</strong><span>Ve a “Peso y talla” para agregar la medición mensual.</span>`;}
+  const sorted=[...measurements].sort((a,b)=>b.month.localeCompare(a.month));
+  const latest=sorted[0];
+  current.innerHTML=entry
+    ? `<span class="measurement-pill"><b>${esc(measurementMonthLabel(entry.month))}</b></span><span class="measurement-pill">Peso: <b>${entry.weight.toLocaleString('es-MX',{maximumFractionDigits:2})} kg</b></span><span class="measurement-pill">Estatura: <b>${entry.height.toLocaleString('es-MX',{maximumFractionDigits:1})} cm</b></span>`
+    : latest
+      ? `<span class="measurement-pill">Última medición: <b>${esc(measurementMonthLabel(latest.month))}</b></span><span class="measurement-pill">Peso: <b>${latest.weight.toLocaleString('es-MX',{maximumFractionDigits:2})} kg</b></span><span class="measurement-pill">Estatura: <b>${latest.height.toLocaleString('es-MX',{maximumFractionDigits:1})} cm</b></span>`
+      : '<span class="measurement-pill">Aún no hay mediciones mensuales.</span>';
+}
+function renderMeasurements(){
+  const list=document.getElementById('measurementList');if(!list)return;
+  const sorted=[...measurements].sort((a,b)=>b.month.localeCompare(a.month));
+  if(!sorted.length){list.innerHTML='<div class="empty measurement-empty">Aún no hay mediciones. Agrega el primer registro mensual.</div>';return}
+  list.innerHTML=sorted.map(m=>`<div class="measurement-item"><div class="measurement-main"><strong>${esc(measurementMonthLabel(m.month))}</strong><small>${m.date?`Medido el ${esc(fmtDate(dateFrom(m.date)))}`:'Medición mensual'}</small></div><div class="measurement-values"><b>${m.weight.toLocaleString('es-MX',{maximumFractionDigits:2})} kg · ${m.height.toLocaleString('es-MX',{maximumFractionDigits:1})} cm</b><span>Peso · Estatura</span></div><div class="measurement-actions"><button class="mini-btn" onclick="editMeasurement('${m.id}')">Editar</button><button class="mini-btn delete" onclick="deleteMeasurement('${m.id}')">Eliminar</button></div></div>`).join('');
+}
+function measurementStatus(msg,error=false){const s=document.getElementById('measurementStatus');s.textContent=msg;s.style.background=error?'var(--red-soft)':'var(--green-soft)';s.style.color=error?'#a64c4c':'#4d7c61';s.classList.add('show');setTimeout(()=>s.classList.remove('show'),3000)}
+function clearMeasurementForm(){editingMeasurementId=null;document.getElementById('measurementId').value='';document.getElementById('measurementMonth').value=currentMonthKey();document.getElementById('measurementWeight').value='';document.getElementById('measurementHeight').value='';document.getElementById('measurementDate').value=iso(new Date());document.getElementById('measurementFormTitle').textContent='Agregar medición mensual';document.getElementById('measurementSaveBtn').textContent='Guardar medición'}
+function saveMeasurement(){
+  const id=document.getElementById('measurementId').value,month=document.getElementById('measurementMonth').value,weight=Number(document.getElementById('measurementWeight').value),height=Number(document.getElementById('measurementHeight').value),date=document.getElementById('measurementDate').value;
+  if(!/^\d{4}-\d{2}$/.test(month)){measurementStatus('Selecciona un mes válido.',true);return}
+  if(!Number.isFinite(weight)||weight<=0){measurementStatus('El peso debe ser mayor que 0.',true);return}
+  if(!Number.isFinite(height)||height<=0){measurementStatus('La estatura debe ser mayor que 0.',true);return}
+  const existing=measurements.find(m=>m.month===month);
+  if(id){const item=measurements.find(m=>m.id===id);if(item)Object.assign(item,{month,weight,height,date});measurementStatus('Medición actualizada.')}
+  else if(existing){Object.assign(existing,{weight,height,date});measurementStatus('Ya existía una medición para ese mes. Se actualizó con los nuevos datos.')}
+  else{measurements.push({id:measurementUid(),month,weight,height,date});measurementStatus('Medición mensual guardada.')}
+  measurements.sort((a,b)=>b.month.localeCompare(a.month));persistMeasurements();clearMeasurementForm();renderMeasurements();renderMeasurementSummary();
+}
+function editMeasurement(id){const m=measurements.find(x=>x.id===id);if(!m)return;editingMeasurementId=id;document.getElementById('measurementId').value=id;document.getElementById('measurementMonth').value=m.month;document.getElementById('measurementWeight').value=m.weight;document.getElementById('measurementHeight').value=m.height;document.getElementById('measurementDate').value=m.date||'';document.getElementById('measurementFormTitle').textContent='Editar medición mensual';document.getElementById('measurementSaveBtn').textContent='Guardar cambios'}
+function deleteMeasurement(id){const m=measurements.find(x=>x.id===id);if(!m)return;if(!confirm(`¿Eliminar la medición de ${measurementMonthLabel(m.month)}?`))return;measurements=measurements.filter(x=>x.id!==id);persistMeasurements();renderMeasurements();renderMeasurementSummary();measurementStatus('Medición eliminada.')}
+
 function inventoryTypeLabel(t){return t==='vaccine'?'Vacuna':t==='other'?'Otro':'Medicación'}
 function renderInventorySummary(){
   const el=document.getElementById('inventoryMiniList');if(!el)return;
@@ -608,29 +713,34 @@ function updateRecord(){
   const id=document.getElementById('editId').value,r=records.find(x=>x.id===id);if(!r)return;
   const site=document.getElementById('editSite').value;
   Object.assign(r,{date:document.getElementById('editDate').value,time:document.getElementById('editTime').value,type:document.getElementById('editType').value,vaccine:document.getElementById('editName').value.trim(),dose:document.getElementById('editDose').value.trim(),site,siteLabel:zoneNames[site],notes:document.getElementById('editNotes').value.trim()});
-  records.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));persist();closeEdit();currentDate=dateFrom(r.date);calendarMonth=new Date(currentDate.getFullYear(),currentDate.getMonth(),1);renderDate();renderHistory();flash('Registro actualizado.');
+  records.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));persist();closeEdit();currentDate=dateFrom(r.date);calendarMonth=new Date(currentDate.getFullYear(),currentDate.getMonth(),1);renderDate();renderHistory();renderMeasurementSummary();flash('Registro actualizado.');
 }
 function csvString(rows){return rows.map(row=>row.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n')}
 function exportJSON(){
   if(currentTab==='inventario'){download('diego-inventario.json',JSON.stringify({patient:'Diego',exportedAt:new Date().toISOString(),inventory},null,2),'application/json');return}
+  if(currentTab==='medidas'){download('diego-peso-talla.json',JSON.stringify({patient:'Diego',exportedAt:new Date().toISOString(),measurements},null,2),'application/json');return}
   download('diego-medical-history.json',JSON.stringify({patient:'Diego',exportedAt:new Date().toISOString(),records},null,2),'application/json')
 }
 function exportCSV(){
   if(currentTab==='inventario'){const rows=[['Medicamento / vacuna','Tipo','Cantidad','Unidad'],...inventory.map(i=>[i.name,inventoryTypeLabel(i.type),i.quantity,i.unit])];download('diego-inventario.csv',csvString(rows),'text/csv');return}
+  if(currentTab==='medidas'){const rows=[['Mes','Peso (kg)','Estatura (cm)','Fecha de medición'],...measurements.sort((a,b)=>b.month.localeCompare(a.month)).map(m=>[m.month,m.weight,m.height,m.date])];download('diego-peso-talla.csv',csvString(rows),'text/csv');return}
   const rows=[['Fecha','Hora','Tipo','Vacuna / medicación','Dosis','Sitio de inyección','Notas'],...records.map(r=>[r.date,r.time,r.type,r.vaccine,r.dose,r.siteLabel,r.notes])];download('diego-medical-history.csv',csvString(rows),'text/csv')
 }
 function exportPDF(){
   document.getElementById('exportOptions').classList.remove('open');
-  if(currentTab==='inventario')buildInventoryPrintReport();else buildPrintReport();
+  if(currentTab==='inventario')buildInventoryPrintReport();
+  else if(currentTab==='medidas')buildMeasurementPrintReport();
+  else buildPrintReport();
   window.print();
+}
+function buildMeasurementPrintReport(){
+  const sorted=[...measurements].sort((a,b)=>b.month.localeCompare(a.month));
+  document.getElementById('printReport').innerHTML=`<div class="print-header"><div class="print-title">Vacunas Diego</div><div class="print-meta">Seguimiento mensual de peso y talla<br>Generado el ${new Date().toLocaleString()}</div></div><div class="print-summary"><div class="print-box"><b>${measurements.length}</b><span>Mediciones</span></div><div class="print-box"><b>${sorted[0]?sorted[0].weight.toLocaleString('es-MX',{maximumFractionDigits:2}):'—'}</b><span>Último peso (kg)</span></div><div class="print-box"><b>${sorted[0]?sorted[0].height.toLocaleString('es-MX',{maximumFractionDigits:1}):'—'}</b><span>Última estatura (cm)</span></div></div><div class="print-day"><div class="print-day-head">Historial mensual</div>${sorted.length?sorted.map(m=>`<div class="print-record"><strong>${esc(measurementMonthLabel(m.month))}</strong><div>Peso: ${m.weight.toLocaleString('es-MX',{maximumFractionDigits:2})} kg · Estatura: ${m.height.toLocaleString('es-MX',{maximumFractionDigits:1})} cm</div><div class="site">${m.date?esc(fmtDate(dateFrom(m.date))):''}</div></div>`).join(''):'<div class="empty">No hay mediciones registradas.</div>'}</div><div class="print-footer">Seguimiento personal mensual. Este reporte no reemplaza los registros médicos oficiales.</div>`;
 }
 function buildInventoryPrintReport(){
   document.getElementById('printReport').innerHTML=`<div class="print-header"><div class="print-title">Vacunas Diego</div><div class="print-meta">Inventario de medicamentos y vacunas<br>Generado el ${new Date().toLocaleString()}</div></div><div class="print-summary"><div class="print-box"><b>${inventory.length}</b><span>Artículos</span></div><div class="print-box"><b>${inventory.reduce((a,i)=>a+Number(i.quantity||0),0)}</b><span>Unidades totales</span></div><div class="print-box"><b>${inventory.filter(i=>i.quantity===0).length}</b><span>Sin existencias</span></div></div><div class="print-day"><div class="print-day-head">Existencias actuales</div>${inventory.length?inventory.map(i=>`<div class="print-record"><strong>${esc(i.name)}</strong><div>${esc(inventoryTypeLabel(i.type))}</div><div class="site">${i.quantity} ${esc(i.unit)}</div></div>`).join(''):'<div class="empty">No hay artículos en el inventario.</div>'}</div><div class="print-footer">Inventario independiente del historial de inyecciones.</div>`;
 }
 function download(name,data,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-function exportPDF(){
-  document.getElementById('exportOptions').classList.remove('open');buildPrintReport();window.print();
-}
 function buildPrintReport(){
   const sorted=[...records].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)),groups={};sorted.forEach(r=>(groups[r.date]??=[]).push(r));
   const vaccines=records.filter(r=>r.type==='vaccine').length,meds=records.filter(r=>r.type!=='vaccine').length,days=new Set(records.map(r=>r.date)).size;
@@ -677,11 +787,343 @@ document.getElementById('exportBtn').onclick=()=>document.getElementById('export
 document.addEventListener('click',e=>{if(!e.target.closest('.export-menu'))document.getElementById('exportOptions').classList.remove('open')});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeImport();closeEdit();document.getElementById('calendar').classList.remove('open')}});
 initAuth();
-renderExportLabels();renderInventorySummary();renderInventory();
+renderExportLabels();renderInventorySummary();renderInventory();clearMeasurementForm();renderMeasurementSummary();renderMeasurements();
 
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(err=>console.warn('Service worker registration failed:',err))});
 }
+</script>
+<script>
+/* ===== Growth tracker (peso y talla) — added on top of the existing page ===== */
+(function(){
+
+  /* --- CSS --- */
+  const css = `
+    .measurement-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .tag{background:#f1f5f6;color:#647077;border-radius:99px;padding:4px 9px;font-size:10.5px;font-weight:800;line-height:1.35;white-space:nowrap}
+    .tag.vel-verylow{background:var(--red-soft);color:#a64c4c}
+    .tag.vel-slow{background:var(--orange-soft);color:#8a6420}
+    .tag.vel-normal{background:var(--blue-soft);color:#426f82}
+    .tag.vel-excellent{background:var(--green-soft);color:#4d7c61}
+    .tag.age{background:#f7faf9;color:var(--muted);font-weight:700}
+    .measurement-comment{font-size:11px;color:var(--muted);margin-top:6px;font-style:italic}
+    .charts-card{margin-top:18px}
+    .charts-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:4px}
+    .charts-head h2{margin:0;font-size:18px}
+    .charts-head p{margin:4px 0 0;color:var(--muted);font-size:12px}
+    .chart-toggle{margin:0}
+    .chart-area{margin-top:14px}
+    .chart-area svg{width:100%;height:auto;display:block;overflow:visible}
+    .chart-legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:11px;color:var(--muted);margin-top:10px}
+    .chart-legend i{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:-1px}
+    .chart-stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;justify-content:center}
+    @media(max-width:540px){.charts-head{flex-direction:column}.chart-toggle{width:100%}.chart-toggle button{flex:1;padding:7px 6px}}
+  `;
+  const styleEl = document.createElement('style');
+  styleEl.textContent = css;
+  document.head.appendChild(styleEl);
+
+  /* --- Inject two new fields into the measurement form --- */
+  const dateField = document.getElementById('measurementDate');
+  if (dateField && !document.getElementById('measurementPercentile')) {
+    dateField.insertAdjacentHTML('afterend', `
+      <label for="measurementPercentile">Percentil <span style="font-weight:500;color:#9aa5aa">(opcional)</span></label>
+      <input id="measurementPercentile" type="text" placeholder="Ejemplo: P25 / percentil 25">
+      <label for="measurementComments">Comentarios <span style="font-weight:500;color:#9aa5aa">(opcional)</span></label>
+      <textarea id="measurementComments" style="min-height:80px" placeholder="Notas del pediatra, estudios, observaciones..."></textarea>
+    `);
+  }
+
+  /* --- Inject the charts card into the Medidas panel --- */
+  const panelMedidas = document.getElementById('panelMedidas');
+  if (panelMedidas && !document.querySelector('.charts-card')) {
+    panelMedidas.insertAdjacentHTML('beforeend', `
+      <section class="card charts-card">
+        <div class="charts-head">
+          <div><h2>Seguimiento visual</h2><p>Evolución mes con mes. La velocidad se calcula igual que en el Excel: ((estatura₂ − estatura₁) ÷ días) × 365.</p></div>
+          <div class="view-toggle chart-toggle">
+            <button id="chartHeightBtn" class="active" onclick="setChart('height')">Estatura</button>
+            <button id="chartWeightBtn" onclick="setChart('weight')">Peso</button>
+            <button id="chartVelocityBtn" onclick="setChart('velocity')">Velocidad</button>
+          </div>
+        </div>
+        <div class="chart-area" id="chartArea"></div>
+        <div class="chart-stats" id="chartStats"></div>
+        <div class="chart-legend" id="chartLegend"></div>
+      </section>
+    `);
+  }
+
+  /* --- Growth helpers --- */
+  const DIEGO_BIRTHDATE = '2019-09-04';
+
+  function getMeasurementDate(m){
+    if (m.date && /^\d{4}-\d{2}-\d{2}$/.test(m.date)) return dateFrom(m.date);
+    const [y, mo] = m.month.split('-').map(Number);
+    return new Date(y, mo - 1, 15, 12);
+  }
+
+  function calculateAge(input){
+    let current;
+    if (input instanceof Date) current = input;
+    else if (typeof input === 'string' && /^\d{4}-\d{2}-\d{2}/.test(input)) current = dateFrom(input.slice(0,10));
+    else if (typeof input === 'string' && /^\d{4}-\d{2}$/.test(input)) { const [y,m] = input.split('-').map(Number); current = new Date(y, m-1, 15, 12); }
+    else return '';
+    const birth = dateFrom(DIEGO_BIRTHDATE);
+    let years = current.getFullYear() - birth.getFullYear();
+    let months = current.getMonth() - birth.getMonth();
+    if (current.getDate() < birth.getDate()) months--;
+    if (months < 0) { years--; months += 12; }
+    return years + ' ' + (years === 1 ? 'año' : 'años') + ' ' + months + ' ' + (months === 1 ? 'mes' : 'meses');
+  }
+
+  function velocityInfo(v){
+    if (!Number.isFinite(v)) return { cls: '', label: '—' };
+    if (v < 3) return { cls: 'vel-verylow', label: 'Muy lento' };
+    if (v < 5) return { cls: 'vel-slow', label: 'Lento' };
+    if (v < 7) return { cls: 'vel-normal', label: 'Normal' };
+    return { cls: 'vel-excellent', label: 'Excelente' };
+  }
+
+  function shortMonth(month){
+    const [y,m] = month.split('-').map(Number);
+    return new Date(y, m-1, 1, 12).toLocaleDateString('es-ES', { month: 'short' }) + ' ' + String(y).slice(2);
+  }
+
+  function sortedMeasurementsAsc(){ return [...measurements].sort((a,b) => a.month.localeCompare(b.month)); }
+
+  function velocityPoints(sorted){
+    const pts = [];
+    for (let i = 1; i < sorted.length; i++) {
+      const a = sorted[i-1], b = sorted[i];
+      const days = Math.round((getMeasurementDate(b) - getMeasurementDate(a)) / 86400000);
+      if (days <= 0) continue;
+      const v = ((b.height - a.height) / days) * 365;
+      pts.push({ x: shortMonth(b.month), y: Number(v.toFixed(2)) });
+    }
+    return pts;
+  }
+
+  let currentChart = 'height';
+  let chartUid = 0;
+
+  window.setChart = function(view){
+    currentChart = view;
+    document.getElementById('chartHeightBtn').classList.toggle('active', view === 'height');
+    document.getElementById('chartWeightBtn').classList.toggle('active', view === 'weight');
+    document.getElementById('chartVelocityBtn').classList.toggle('active', view === 'velocity');
+    renderCharts();
+  };
+
+  function buildLineChart(points, opts){
+    const color = opts.color || '#4c8298';
+    const chartType = opts.chartType || '';
+    const W = 800, H = 320;
+    const pad = { l: 62, r: 22, t: 24, b: 52 };
+    const innerW = W - pad.l - pad.r;
+    const innerH = H - pad.t - pad.b;
+    if (!points.length) return '<div class="empty" style="padding:40px 10px">Sin datos.</div>';
+    const uid = 'g' + (++chartUid);
+    const values = points.map(p => p.y);
+    const minVal = Math.min(...values), maxVal = Math.max(...values);
+    const range = (maxVal - minVal) || Math.max(1, maxVal * 0.1);
+    const padY = range * 0.18;
+    let yMin = minVal - padY, yMax = maxVal + padY;
+    if (yMin < 0 && minVal >= 0) yMin = 0;
+    const yRange = (yMax - yMin) || 1;
+    const xFor = i => points.length === 1 ? pad.l + innerW/2 : pad.l + (i/(points.length-1))*innerW;
+    const yFor = v => pad.t + innerH - ((v - yMin)/yRange) * innerH;
+    let grid = '';
+    for (let i = 0; i <= 4; i++) {
+      const v = yMin + (i/4) * yRange;
+      const y = yFor(v);
+      grid += '<line x1="'+pad.l+'" y1="'+y.toFixed(1)+'" x2="'+(W-pad.r)+'" y2="'+y.toFixed(1)+'" stroke="#eef3f4" stroke-width="1"/>';
+      grid += '<text x="'+(pad.l-8)+'" y="'+(y+4).toFixed(1)+'" text-anchor="end" font-size="11" fill="#72828d">'+v.toFixed(1)+'</text>';
+    }
+    if (chartType === 'velocity') {
+      [5,7].forEach(ref => {
+        if (ref >= yMin && ref <= yMax) {
+          const y = yFor(ref);
+          grid += '<line x1="'+pad.l+'" y1="'+y.toFixed(1)+'" x2="'+(W-pad.r)+'" y2="'+y.toFixed(1)+'" stroke="'+(ref===7?'#78a58a':'#4c8298')+'" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.55"/>';
+          grid += '<text x="'+(W-pad.r-4)+'" y="'+(y-4).toFixed(1)+'" text-anchor="end" font-size="10" fill="'+(ref===7?'#78a58a':'#4c8298')+'" font-weight="700">'+(ref===7?'Excelente':'Normal')+'</text>';
+        }
+      });
+    }
+    const pathD = points.map((p,i) => (i===0?'M':'L') + ' ' + xFor(i).toFixed(1) + ' ' + yFor(p.y).toFixed(1)).join(' ');
+    const areaD = points.length > 1
+      ? pathD + ' L ' + xFor(points.length-1).toFixed(1) + ' ' + (pad.t+innerH).toFixed(1) + ' L ' + xFor(0).toFixed(1) + ' ' + (pad.t+innerH).toFixed(1) + ' Z'
+      : '';
+    let dots = '';
+    points.forEach((p,i) => {
+      const cx = xFor(i), cy = yFor(p.y);
+      let dotColor = color;
+      if (chartType === 'velocity') {
+        if (p.y < 3) dotColor = '#dc6a6a';
+        else if (p.y < 5) dotColor = '#d89b4c';
+        else if (p.y < 7) dotColor = '#4c8298';
+        else dotColor = '#78a58a';
+      }
+      dots += '<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="5" fill="#fff" stroke="'+dotColor+'" stroke-width="3"/>';
+      if (points.length <= 14) dots += '<text x="'+cx.toFixed(1)+'" y="'+(cy-11).toFixed(1)+'" text-anchor="middle" font-size="10" fill="#263746" font-weight="700">'+p.y.toFixed(1)+'</text>';
+    });
+    let xLabels = '';
+    points.forEach((p,i) => {
+      const x = xFor(i);
+      xLabels += '<text x="'+x.toFixed(1)+'" y="'+(H-pad.b+22).toFixed(1)+'" text-anchor="middle" font-size="11" fill="#72828d">'+p.x+'</text>';
+      xLabels += '<line x1="'+x.toFixed(1)+'" y1="'+(pad.t+innerH).toFixed(1)+'" x2="'+x.toFixed(1)+'" y2="'+(pad.t+innerH+4).toFixed(1)+'" stroke="#dfe7ea" stroke-width="1"/>';
+    });
+    return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" role="img"><defs><linearGradient id="'+uid+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+color+'" stop-opacity="0.28"/><stop offset="100%" stop-color="'+color+'" stop-opacity="0"/></linearGradient></defs>' + grid + (areaD ? '<path d="'+areaD+'" fill="url(#'+uid+')"/>' : '') + '<path d="'+pathD+'" fill="none" stroke="'+color+'" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>' + dots + xLabels + '</svg>';
+  }
+
+  function renderCharts(){
+    const area = document.getElementById('chartArea');
+    const statsEl = document.getElementById('chartStats');
+    const legendEl = document.getElementById('chartLegend');
+    if (!area) return;
+    const asc = sortedMeasurementsAsc();
+    if (asc.length < 2 && currentChart !== 'velocity') {
+      area.innerHTML = '<div class="empty" style="padding:40px 10px">Agrega al menos dos mediciones para ver la gráfica.</div>';
+      statsEl.innerHTML = ''; legendEl.innerHTML = ''; return;
+    }
+    if (asc.length < 3 && currentChart === 'velocity') {
+      area.innerHTML = '<div class="empty" style="padding:40px 10px">Agrega al menos tres mediciones para calcular la velocidad de crecimiento.</div>';
+      statsEl.innerHTML = ''; legendEl.innerHTML = ''; return;
+    }
+    let points = [], color = '#4c8298', chartType = '', stats = [], legend = '';
+    if (currentChart === 'height') {
+      points = asc.map(m => ({ x: shortMonth(m.month), y: Number(m.height.toFixed(2)) }));
+      chartType = 'height'; color = '#4c8298';
+      const first = asc[0], last = asc[asc.length-1];
+      const total = last.height - first.height;
+      const yrs = (getMeasurementDate(last) - getMeasurementDate(first)) / (365.25 * 86400000);
+      const avg = yrs > 0 ? total / yrs : 0;
+      stats = [
+        { label: 'Estatura actual', value: last.height.toLocaleString('es-MX',{maximumFractionDigits:1}) + ' cm' },
+        { label: 'Cambio total', value: (total >= 0 ? '+' : '') + total.toLocaleString('es-MX',{maximumFractionDigits:1}) + ' cm' },
+        { label: 'Velocidad promedio', value: avg.toFixed(2) + ' cm/año' }
+      ];
+      legend = '<span><i style="background:'+color+'"></i>Estatura (cm)</span>';
+    } else if (currentChart === 'weight') {
+      points = asc.map(m => ({ x: shortMonth(m.month), y: Number(m.weight.toFixed(2)) }));
+      chartType = 'weight'; color = '#78a58a';
+      const first = asc[0], last = asc[asc.length-1];
+      const total = last.weight - first.weight;
+      stats = [
+        { label: 'Peso actual', value: last.weight.toLocaleString('es-MX',{maximumFractionDigits:2}) + ' kg' },
+        { label: 'Cambio total', value: (total >= 0 ? '+' : '') + total.toLocaleString('es-MX',{maximumFractionDigits:2}) + ' kg' }
+      ];
+      legend = '<span><i style="background:'+color+'"></i>Peso (kg)</span>';
+    } else {
+      points = velocityPoints(asc);
+      chartType = 'velocity'; color = '#d89b4c';
+      if (points.length) {
+        const latest = points[points.length-1].y;
+        const avg = points.reduce((s,p) => s + p.y, 0) / points.length;
+        stats = [
+          { label: 'Última velocidad', value: latest.toFixed(2) + ' cm/año' },
+          { label: 'Velocidad promedio', value: avg.toFixed(2) + ' cm/año' }
+        ];
+      }
+      legend = '<span><i style="background:'+color+'"></i>Velocidad (cm/año)</span><span><i style="background:#78a58a"></i>Excelente (≥7)</span><span><i style="background:#4c8298"></i>Normal (5–7)</span><span><i style="background:#d89b4c"></i>Lento (&lt;5)</span>';
+    }
+    area.innerHTML = buildLineChart(points, { color: color, chartType: chartType });
+    statsEl.innerHTML = stats.map(s => '<span class="measurement-pill">' + s.label + ': <b>' + s.value + '</b></span>').join('');
+    legendEl.innerHTML = legend;
+  }
+  window.renderCharts = renderCharts;
+
+  /* --- Override the measurements rendering + save/edit/clear/delete --- */
+  window.renderMeasurements = function(){
+    const list = document.getElementById('measurementList');
+    if (!list) return;
+    const sorted = [...measurements].sort((a,b) => b.month.localeCompare(a.month));
+    if (!sorted.length) {
+      list.innerHTML = '<div class="empty measurement-empty">Aún no hay mediciones. Agrega el primer registro mensual.</div>';
+      renderCharts(); return;
+    }
+    const asc = [...sorted].reverse();
+    const velMap = {};
+    for (let i = 1; i < asc.length; i++) {
+      const a = asc[i-1], b = asc[i];
+      const days = Math.round((getMeasurementDate(b) - getMeasurementDate(a)) / 86400000);
+      if (days > 0) velMap[b.id] = ((b.height - a.height) / days) * 365;
+    }
+    list.innerHTML = sorted.map(m => {
+      const age = calculateAge(m.month);
+      const v = velMap[m.id];
+      const vInfo = Number.isFinite(v) ? velocityInfo(v) : null;
+      const tags = ['<span class="tag age">' + esc(age) + '</span>'];
+      if (vInfo) tags.push('<span class="tag ' + vInfo.cls + '">' + vInfo.label + ': ' + v.toFixed(2) + ' cm/año</span>');
+      if (m.percentile) tags.push('<span class="tag">Percentil: ' + esc(m.percentile) + '</span>');
+      const commentHtml = m.comments ? '<div class="measurement-comment">' + esc(m.comments) + '</div>' : '';
+      return '<div class="measurement-item"><div class="measurement-main"><strong>' + esc(measurementMonthLabel(m.month)) + '</strong><small>' + (m.date ? 'Medido el ' + esc(fmtDate(dateFrom(m.date))) : 'Medición mensual') + '</small><div class="measurement-tags">' + tags.join('') + '</div>' + commentHtml + '</div><div class="measurement-values"><b>' + m.weight.toLocaleString('es-MX',{maximumFractionDigits:2}) + ' kg · ' + m.height.toLocaleString('es-MX',{maximumFractionDigits:1}) + ' cm</b><span>Peso · Estatura</span></div><div class="measurement-actions"><button class="mini-btn" onclick="editMeasurement(\'' + m.id + '\')">Editar</button><button class="mini-btn delete" onclick="deleteMeasurement(\'' + m.id + '\')">Eliminar</button></div></div>';
+    }).join('');
+    renderCharts();
+  };
+
+  window.clearMeasurementForm = function(){
+    editingMeasurementId = null;
+    document.getElementById('measurementId').value = '';
+    document.getElementById('measurementMonth').value = currentMonthKey();
+    document.getElementById('measurementWeight').value = '';
+    document.getElementById('measurementHeight').value = '';
+    document.getElementById('measurementDate').value = iso(new Date());
+    document.getElementById('measurementPercentile').value = '';
+    document.getElementById('measurementComments').value = '';
+    document.getElementById('measurementFormTitle').textContent = 'Agregar medición mensual';
+    document.getElementById('measurementSaveBtn').textContent = 'Guardar medición';
+  };
+
+  window.saveMeasurement = function(){
+    const id = document.getElementById('measurementId').value;
+    const month = document.getElementById('measurementMonth').value;
+    const weight = Number(document.getElementById('measurementWeight').value);
+    const height = Number(document.getElementById('measurementHeight').value);
+    const date = document.getElementById('measurementDate').value;
+    const percentile = document.getElementById('measurementPercentile').value.trim();
+    const comments = document.getElementById('measurementComments').value.trim();
+    if (!/^\d{4}-\d{2}$/.test(month)) { measurementStatus('Selecciona un mes válido.', true); return; }
+    if (!Number.isFinite(weight) || weight <= 0) { measurementStatus('El peso debe ser mayor que 0.', true); return; }
+    if (!Number.isFinite(height) || height <= 0) { measurementStatus('La estatura debe ser mayor que 0.', true); return; }
+    const existing = measurements.find(m => m.month === month);
+    if (id) { const item = measurements.find(m => m.id === id); if (item) Object.assign(item, { month, weight, height, date, percentile, comments }); measurementStatus('Medición actualizada.'); }
+    else if (existing) { Object.assign(existing, { weight, height, date, percentile, comments }); measurementStatus('Ya existía una medición para ese mes. Se actualizó con los nuevos datos.'); }
+    else { measurements.push({ id: measurementUid(), month, weight, height, date, percentile, comments }); measurementStatus('Medición mensual guardada.'); }
+    measurements.sort((a,b) => b.month.localeCompare(a.month));
+    persistMeasurements();
+    clearMeasurementForm();
+    renderMeasurements();
+    renderMeasurementSummary();
+  };
+
+  window.editMeasurement = function(id){
+    const m = measurements.find(x => x.id === id);
+    if (!m) return;
+    editingMeasurementId = id;
+    document.getElementById('measurementId').value = id;
+    document.getElementById('measurementMonth').value = m.month;
+    document.getElementById('measurementWeight').value = m.weight;
+    document.getElementById('measurementHeight').value = m.height;
+    document.getElementById('measurementDate').value = m.date || '';
+    document.getElementById('measurementPercentile').value = m.percentile || '';
+    document.getElementById('measurementComments').value = m.comments || '';
+    document.getElementById('measurementFormTitle').textContent = 'Editar medición mensual';
+    document.getElementById('measurementSaveBtn').textContent = 'Guardar cambios';
+  };
+
+  window.deleteMeasurement = function(id){
+    const m = measurements.find(x => x.id === id);
+    if (!m) return;
+    if (!confirm('¿Eliminar la medición de ' + measurementMonthLabel(m.month) + '?')) return;
+    measurements = measurements.filter(x => x.id !== id);
+    persistMeasurements();
+    renderMeasurements();
+    renderMeasurementSummary();
+    measurementStatus('Medición eliminada.');
+  };
+
+  console.log('[growth] tracker loaded');
+})();
 </script>
 </body>
 </html>
