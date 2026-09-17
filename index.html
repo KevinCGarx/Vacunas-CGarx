@@ -858,8 +858,12 @@ if('serviceWorker' in navigator){
   const DIEGO_BIRTHDATE = '2019-09-04';
 
   function getMeasurementDate(m){
-    if (m.date && /^\d{4}-\d{2}-\d{2}$/.test(m.date)) return dateFrom(m.date);
     const [y, mo] = m.month.split('-').map(Number);
+    if (m.date && /^\d{4}-\d{2}-\d{2}$/.test(m.date)) {
+      const d = dateFrom(m.date);
+      // only trust the date if it falls inside the chosen month
+      if (d.getFullYear() === y && d.getMonth() + 1 === mo) return d;
+    }
     return new Date(y, mo - 1, 15, 12);
   }
 
@@ -1122,7 +1126,7 @@ if('serviceWorker' in navigator){
     measurementStatus('Medición eliminada.');
   };
 
-  console.log('[growth] tracker loaded');
+  console.log('[growth] tracker loaded v2');
 })();
 </script>
 </body>
