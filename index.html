@@ -189,10 +189,9 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
 .sleep-stats-main span{font-size:12px;color:#c3cbef}
 .sleep-stats-sub{font-size:12px;color:#c3cbef;margin-top:6px}
 .sleep-stats-sub b{color:#fff}
-.sleep-week-bars{display:flex;align-items:flex-end;gap:6px;height:64px;margin-top:16px}
-.sleep-week-bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;height:100%}
-.sleep-week-bar-fill{width:100%;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,#9fb0ff,#5f74e0);min-height:3px}
-.sleep-week-bar-label{font-size:9px;color:#9fabdc;font-weight:800;text-transform:uppercase}
+.sleep-week-bars{margin-top:16px}
+.sleep-week-bars svg{display:block;width:100%;height:auto}
+.sleep-week-legend{margin-top:8px;font-size:9.5px;color:#9fabdc;display:flex;gap:14px;flex-wrap:wrap}
 .sleep-stats-empty{color:#c3cbef;font-size:12.5px;position:relative;z-index:1}
 .sleep-list{display:flex;flex-direction:column;gap:9px}
 .sleep-item{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:#fff}
@@ -356,13 +355,8 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
   <input id="time" type="time" value="20:30">
   <div class="default-pill">● Hora por defecto: 8:30 PM</div>
 
-  <label for="type">Tipo</label>
-  <select id="type">
-    <option value="medication">Medicación / Hormona</option>
-    <option value="vaccine">Vacuna</option>
-  </select>
-
   <label for="vaccine">Vacuna / Medicación</label>
+
   <select id="vaccine" onchange="applyVaccineSelection()">
     <option value="">Selecciona un medicamento del inventario...</option>
   </select>
@@ -437,6 +431,7 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
 </div>
 
 <div class="tab-panel" id="panelInventario">
+  <div class="card" id="inventoryPlainSummary" style="background:linear-gradient(145deg,#f4faf6,#eaf5ee);border-color:#cfe6d6;margin-bottom:16px"></div>
   <div class="inventory-head">
     <div><h2>Inventario de somatropina</h2><p>Control de cartuchos sellados, cartucho activo y previsión de existencias.</p></div>
   </div>
@@ -460,14 +455,27 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
     </section>
     <section class="inventory-stack">
       <div class="card stock-hero" id="inventoryStockHero"></div>
-      <div class="card">
-        <div class="section-title">Cartucho activo</div>
-        <div class="active-pen-grid">
-          <div><label for="inventoryActiveRemaining">Restante</label><div class="dose-inline"><input id="inventoryActiveRemaining" type="number" min="0" step="0.01" placeholder="Sin cartucho activo"><span id="inventoryActiveUnit">mg</span></div></div>
-          <div><label for="inventoryOpenedDate">Fecha de apertura / reconstitución</label><input id="inventoryOpenedDate" type="date"></div>
-          <div><label for="inventoryStabilityDays">Ventana tras apertura (días)</label><input id="inventoryStabilityDays" type="number" min="1" step="1" placeholder="Ejemplo: 28"></div>
+                 <div class="card">
+        <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
+          <span>Cartucho activo</span>
+          <button class="mini-btn" id="activePenToggleBtn" onclick="toggleActivePenAdvanced()" style="font-size:11px">Detalles avanzados ▾</button>
         </div>
-        <div class="form-hint">La app calcula una fecha de revisión a partir de estos datos. No presupone que 28 días sea válido para todas las presentaciones: usa el plazo indicado en el envase o por su profesional de salud.</div>
+        <div class="form-hint" style="margin:0 0 12px">
+          <b>Uso normal:</b> no toques nada aquí. Cada vez que registres una inyección en <b>Registro</b>, la app descuenta la dosis automáticamente y abre un cartucho nuevo cuando se acaba.<br>
+          <b>Solo usa estos botones si:</b> acabas de abrir un cartucho físicamente (→ <i>Abrir nuevo cartucho</i>), o el número que muestra la app no coincide con lo que ves en la pluma (→ <i>Guardar cartucho activo</i>).
+        </div>
+        <div id="activePenAdvanced" class="hidden">
+          <div class="active-pen-grid">
+            <div><label for="inventoryActiveRemaining">Restante</label><div class="dose-inline"><input id="inventoryActiveRemaining" type="number" min="0" step="0.01" placeholder="Sin cartucho activo"><span id="inventoryActiveUnit">mg</span></div></div>
+            <div><label for="inventoryOpenedDate">Fecha de apertura / reconstitución</label><input id="inventoryOpenedDate" type="date"></div>
+            <div><label for="inventoryStabilityDays">Ventana tras apertura (días)</label><input id="inventoryStabilityDays" type="number" min="1" step="1" placeholder="Ejemplo: 28"></div>
+          </div>
+          <div class="save-row" style="justify-content:flex-start;gap:8px">
+            <button class="btn" onclick="openNewPenManually()">Abrir nuevo cartucho</button>
+            <button class="btn primary" id="activePenSaveBtn" onclick="saveActivePen()">Guardar cartucho activo</button>
+          </div>
+          <div class="form-hint">La app calcula una fecha de revisión a partir de estos datos. No presupone que 28 días sea válido para todas las presentaciones: usa el plazo indicado en el envase o por su profesional de salud.</div>
+        </div>
       </div>
       <div class="card">
         <div class="section-title">Stock sellado</div>
@@ -526,7 +534,7 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
 </div>
 <div class="tab-panel" id="panelSueno">
   <div class="sleep-head">
-    <div><h2>🌙 Sueño</h2><p>Registra la hora de dormir y despertar de cada niño. Estos registros son independientes del resto de la app.</p></div>
+    <div><h2>🌙 Sueño</h2><p>Registra la hora en que cada niño se durmió — ideal para anotarla justo al acostarlo, aunque no estés ahí a la hora de despertar. Estos registros son independientes del resto de la app.</p></div>
     <div class="sleep-kid-switch" id="sleepKidSwitch"></div>
   </div>
   <div class="sleep-layout">
@@ -535,14 +543,12 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
       <input id="sleepRecordId" type="hidden">
       <input id="sleepRecordKid" type="hidden">
       <label for="sleepDate">Fecha</label>
-      <input id="sleepDate" type="date">
-      <div class="time-row">
-        <div style="flex:1"><label for="sleepBedtime">Hora de dormir</label><input id="sleepBedtime" type="time" oninput="updateSleepDurationPreview()"></div>
-        <div style="flex:1"><label for="sleepWake">Hora de despertar</label><input id="sleepWake" type="time" oninput="updateSleepDurationPreview()"></div>
-      </div>
-      <div class="sleep-duration-preview" id="sleepDurationPreview">Completa ambas horas para ver la duración.</div>
+      <input id="sleepDate" type="date" oninput="updateSleepPreview()">
+      <label for="sleepBedtime">Hora de dormir</label>
+      <input id="sleepBedtime" type="time" oninput="updateSleepPreview()">
+      <div class="sleep-duration-preview" id="sleepDurationPreview">Elige fecha y hora para ver la confirmación.</div>
       <label for="sleepNotes">Notas <span style="font-weight:500;color:#9aa5aa">(opcional)</span></label>
-      <textarea id="sleepNotes" placeholder="Ejemplo: se despertó llorando, siesta incluida, le costó dormir..."></textarea>
+      <textarea id="sleepNotes" placeholder="Ejemplo: se durmió llorando, con canción, le costó dormir..."></textarea>
       <div class="save-row"><button class="btn" onclick="clearSleepForm()">Resetear</button><button class="btn primary" id="sleepSaveBtn" onclick="saveSleepRecord()">Guardar registro</button></div>
       <div class="status" id="sleepStatus"></div>
     </section>
@@ -951,6 +957,7 @@ function renderInventorySummary(){
   const days=inventoryDaysRemaining(i);el.innerHTML=`<span class="inventory-mini">Activo: <b>${Number(i.activeRemaining||0).toLocaleString('es-MX',{maximumFractionDigits:2})} ${esc(i.strengthUnit||'mg')}</b></span><span class="inventory-mini">Sellado: <b>${Number(i.unopenedStock||0)}</b></span>${days!==null?`<span class="inventory-mini">Previsión: <b>${days} días</b></span>`:''}`;
 }
 function renderInventory(){
+  inventoryPlainSummary();
   const i=inventoryPrimary(),hero=document.getElementById('inventoryStockHero');if(!hero)return;
   if(!i){hero.innerHTML='<div class="empty">Aún no hay configuración. Completa los datos de somatropina para conectar Inventario con Registro.</div>';document.getElementById('inventoryUnopenedStock').textContent='0';document.getElementById('inventoryLots').innerHTML='';return}
   const days=inventoryDaysRemaining(i),total=inventoryTotalAvailable(i),expiry=inventoryExpiryStatus(i),strength=Number(i.strength||0),active=Number(i.activeRemaining||0),reserve=Number(i.unopenedStock||0),maxStock=Math.max(total,strength||1),pct=Math.min(100,Math.max(0,total/maxStock*100));
@@ -970,6 +977,89 @@ function saveInventoryItem(){
 function adjustUnopenedStock(delta){const i=inventoryPrimary();if(!i){inventoryStatus('Primero configura la somatropina.',true);return}if(delta>0){addInventoryLot(true);return}const lots=[...(i.lots||[])].sort((a,b)=>(a.expiration||'9999').localeCompare(b.expiration||'9999')),lot=lots.find(l=>Number(l.quantity||0)>0);if(!lot){inventoryStatus('No hay cartuchos sellados para retirar.',true);return}lot.quantity=Math.max(0,Number(lot.quantity)-1);i.unopenedStock=i.lots.reduce((sum,l)=>sum+Number(l.quantity||0),0);i.quantity=i.unopenedStock;persistInventory();renderInventory();renderInventorySummary()}
 function addInventoryLot(skipPrompt=false){const i=inventoryPrimary();if(!i){inventoryStatus('Primero guarda la configuración del medicamento.',true);return}const input=document.getElementById('inventoryLotExpiration'),expiration=input.value||'';if(!skipPrompt&&!expiration){inventoryStatus('Añade la caducidad del cartucho o lote sellado.',true);return}const lot={id:inventoryUid(),quantity:1,expiration};i.lots=Array.isArray(i.lots)?i.lots:[];i.lots.push(lot);i.unopenedStock=i.lots.reduce((sum,l)=>sum+Number(l.quantity||0),0);i.quantity=i.unopenedStock;persistInventory();input.value='';renderInventory();renderInventorySummary();inventoryStatus('Cartucho sellado añadido al stock.')}
 function removeInventoryLot(id){const i=inventoryPrimary();if(!i)return;const lot=i.lots?.find(l=>l.id===id);if(!lot)return;if(!confirm('¿Eliminar este cartucho/lote del inventario?'))return;i.lots=i.lots.filter(l=>l.id!==id);i.unopenedStock=i.lots.reduce((sum,l)=>sum+Number(l.quantity||0),0);i.quantity=i.unopenedStock;persistInventory();renderInventory();renderInventorySummary()}
+
+function saveActivePen(){
+  const i=inventoryPrimary();
+  if(!i){inventoryStatus('Primero configura la somatropina.',true);return}
+  const remaining=Number(document.getElementById('inventoryActiveRemaining').value);
+  const opened=document.getElementById('inventoryOpenedDate').value||'';
+  const stability=Number(document.getElementById('inventoryStabilityDays').value);
+  if(!Number.isFinite(remaining)||remaining<0){inventoryStatus('El restante debe ser un número mayor o igual a 0.',true);return}
+  if(!Number.isFinite(stability)||stability<1){inventoryStatus('La ventana tras apertura debe ser al menos 1 día.',true);return}
+  i.activeRemaining=remaining;
+  i.openedDate=opened;
+  i.stabilityDays=Math.max(1,Math.floor(stability));
+  persistInventory();
+  renderInventory();
+  renderInventorySummary();
+  inventoryStatus('Cartucho activo actualizado.');
+}
+function openNewPenManually(){
+  const i=inventoryPrimary();
+  if(!i){inventoryStatus('Primero configura la somatropina.',true);return}
+  if(Number(i.activeRemaining||0)>0){
+    if(!confirm('Ya hay un cartucho activo con '+Number(i.activeRemaining).toLocaleString('es-MX',{maximumFractionDigits:2})+' '+(i.strengthUnit||'mg')+' restante. ¿Descartarlo y abrir uno nuevo del stock sellado?'))return;
+  }
+  if(!openNextInventoryPen()){inventoryStatus('No hay cartuchos sellados disponibles para abrir.',true);return}
+  renderInventory();
+  renderInventorySummary();
+  inventoryStatus('Nuevo cartucho abierto desde el stock sellado.');
+}
+
+function toggleActivePenAdvanced(){
+  const box=document.getElementById('activePenAdvanced');
+  const btn=document.getElementById('activePenToggleBtn');
+  if(!box||!btn)return;
+  const open=box.classList.toggle('hidden');
+  btn.textContent=open?'Detalles avanzados ▾':'Ocultar detalles ▴';
+}
+function inventoryPlainSummary(){
+  const el=document.getElementById('inventoryPlainSummary');
+  if(!el)return;
+  const i=inventoryPrimary();
+  if(!i){
+    el.innerHTML='<div style="font-size:13px;color:var(--muted)">Configura primero la somatropina en la tarjeta de abajo para ver el resumen.</div>';
+    return;
+  }
+  const sealed=Number(i.unopenedStock||0);
+  const active=Number(i.activeRemaining||0);
+  const unit=i.strengthUnit||'mg';
+  const days=inventoryDaysRemaining(i);
+  const exp=inventoryExpiryStatus(i);
+  const dosis=Number(i.dailyDose||0);
+  const dosisTxt=dosis>0?(dosis.toLocaleString('es-MX',{maximumFractionDigits:2})+' '+(i.dailyDoseUnit||unit)+' al día'):'sin dosis configurada';
+
+  let mainLine='';
+  if(sealed===0&&active<=0){
+    mainLine='⚠ <b>No queda somatropina.</b> Es momento de conseguir el siguiente suministro.';
+  }else{
+    const plural=sealed===1?'cartucho':'cartuchos';
+    mainLine='✅ Quedan <b>'+sealed+' '+plural+'</b> en la nevera. El que estás usando tiene <b>'+active.toLocaleString('es-MX',{maximumFractionDigits:2})+' '+esc(unit)+'</b>';
+    if(days!==null) mainLine+=', alcanza para unos <b>'+days+' días</b>';
+    mainLine+='.';
+  }
+
+  let expLine='';
+  if(exp){
+    if(exp.days<0){
+      expLine='<div style="color:#a64c4c;font-weight:750;margin-top:6px">⚠ El cartucho activo ya pasó su fecha estimada de revisión ('+esc(fmtDate(dateFrom(exp.expiry)))+'). Verifica la indicación de tu profesional de salud.</div>';
+    }else if(exp.days<=5){
+      expLine='<div style="color:#85652f;font-weight:750;margin-top:6px">⚠ El cartucho activo cumple su ventana tras apertura el '+esc(fmtDate(dateFrom(exp.expiry)))+' (en '+exp.days+' días).</div>';
+    }
+  }
+
+  let buyLine='';
+  if(days!==null&&sealed<=1&&active>0){
+    const today=new Date();today.setDate(today.getDate()+days);
+    buyLine='<div style="color:#426f82;font-weight:750;margin-top:6px">Próxima compra sugerida: alrededor del '+esc(today.toLocaleDateString('es-ES',{day:'numeric',month:'long'}))+'</div>';
+  }
+
+  el.innerHTML='<div style="font-size:14px;line-height:1.5;color:var(--ink)">'+mainLine+'</div>'
+    +'<div style="font-size:11px;color:var(--muted);margin-top:6px">Dosis diaria: '+esc(dosisTxt)+'</div>'
+    +expLine+buyLine;
+}
+
+
 function openNextInventoryPen(){const i=inventoryPrimary();if(!i)return false;const lots=[...(i.lots||[])].sort((a,b)=>(a.expiration||'9999').localeCompare(b.expiration||'9999')),lot=lots.find(l=>Number(l.quantity||0)>0);if(!lot)return false;lot.quantity-=1;i.unopenedStock=i.lots.reduce((sum,l)=>sum+Number(l.quantity||0),0);i.quantity=i.unopenedStock;i.activeRemaining=Number(i.strength||0);i.openedDate=iso(currentDate);persistInventory();return true}
 function findInventoryByName(name){const n=String(name||'').trim().toLocaleLowerCase();return inventory.find(i=>i.name.toLocaleLowerCase()===n)||inventoryPrimary()}
 function consumeInventoryForRecord(name,doseText){const i=findInventoryByName(name);if(!i)return {ok:true,item:null};const dose=parseDoseValue(doseText)?.value||Number(i.dailyDose||0);if(!Number.isFinite(dose)||dose<=0)return {ok:false,message:'No se pudo determinar la dosis para descontar del inventario.'};if(!Number(i.strength)||i.strength<=0)return {ok:true,item:i};if(Number(i.activeRemaining||0)<dose){if(Number(i.activeRemaining||0)>0)return {ok:false,message:`El cartucho activo solo tiene ${Number(i.activeRemaining).toLocaleString('es-MX',{maximumFractionDigits:2})} ${i.strengthUnit}. Abre el siguiente cartucho o verifica la dosis antes de guardar.`};if(!openNextInventoryPen())return {ok:false,message:'No hay cartuchos sellados disponibles para iniciar el siguiente cartucho.'}}i.activeRemaining=Math.max(0,Number(i.activeRemaining)-dose);persistInventory();return {ok:true,item:i,dose}}
@@ -1066,20 +1156,21 @@ function loadRecordForDate(){
   updateRecentSites();
 }
 function loadIntoForm(r){
-  editingId=r.id;document.getElementById('time').value=r.time||'20:30';document.getElementById('type').value=r.type||'medication';document.getElementById('vaccine').value=r.vaccine||'';document.getElementById('dose').value=r.dose||'';document.getElementById('notes').value=r.notes||'';
+    editingId=r.id;document.getElementById('time').value=r.time||'20:30';document.getElementById('vaccine').value=r.vaccine||'';document.getElementById('dose').value=r.dose||'';document.getElementById('notes').value=r.notes||'';
   selectedZone=r.site||null;document.getElementById('selectedSite').textContent=r.siteLabel||zoneNames[r.site]||'Ninguno seleccionado';
   zones.forEach(z=>document.getElementById(z)?.classList.remove('selected'));if(r.site)document.getElementById(r.site)?.classList.add('selected');
   document.getElementById('saveBtn').textContent='Guardar registro';
 }
 function clearForm(resetButton=true){
-  if(resetButton)editingId=null;document.getElementById('time').value='20:30';document.getElementById('type').value='medication';
+   if(resetButton)editingId=null;document.getElementById('time').value='20:30';
   const inv=inventoryPrimary();document.getElementById('vaccine').value=inv?.name||'';document.getElementById('dose').value=inv?.dailyDose?`${inv.dailyDose} ${inv.dailyDoseUnit||inv.strengthUnit||'mg'}`:'';
   document.getElementById('notes').value='';selectedZone=null;zones.forEach(z=>document.getElementById(z)?.classList.remove('selected'));document.getElementById('selectedSite').textContent='Ninguno seleccionado';
   if(resetButton)document.getElementById('saveBtn').textContent='Guardar registro';
 }
 function saveRecord(){
   if(!selectedZone){flash('Por favor, selecciona un sitio de inyección primero.',true);return}
-  const entry={id:editingId||uid(),date:iso(currentDate),time:document.getElementById('time').value||'20:30',type:document.getElementById('type').value,vaccine:document.getElementById('vaccine').value.trim(),dose:document.getElementById('dose').value.trim(),site:selectedZone,siteLabel:zoneNames[selectedZone],notes:document.getElementById('notes').value.trim()};
+    const entry={id:editingId||uid(),date:iso(currentDate),time:document.getElementById('time').value||'20:30',type:'medication',vaccine:document.getElementById('vaccine').value.trim(),dose:document.getElementById('dose').value.trim(),site:selectedZone,siteLabel:zoneNames[selectedZone],notes:document.getElementById('notes').value.trim()};
+
   if(!entry.vaccine){flash('Selecciona un medicamento del inventario.',true);return}
   if(editingId){records=records.map(r=>r.id===editingId?entry:r);}
   else{const consumed=consumeInventoryForRecord(entry.vaccine,entry.dose);if(!consumed.ok){flash(consumed.message,true);return}records.push(entry);}
@@ -1090,7 +1181,7 @@ function toggleHistory(){const p=document.getElementById('historyPanel');p.class
 function renderHistory(){
   const el=document.getElementById('historyList');if(!records.length){el.innerHTML='<div class="empty">Aún no hay registros. Tus inyecciones guardadas aparecerán aquí.</div>';return}
   const groups={};[...records].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)).forEach(r=>(groups[r.date]??=[]).push(r));
-  el.innerHTML=Object.entries(groups).map(([date,rs])=>`<div class="history-day"><div class="history-day-head"><strong>${dateFrom(date).toLocaleDateString('es-ES',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</strong><span>${rs.length} registro${rs.length===1?'':'s'}</span></div>${rs.map(r=>`<div class="record-row"><div class="record-time">${formatTime(r.time)}</div><div class="record-main"><strong>${esc(r.vaccine||'Registro sin título')}</strong><small>${r.type==='vaccine'?'Vacuna':'Medicación / hormona'}${r.dose?' · '+esc(r.dose):''}${r.notes?' · '+esc(r.notes):''}</small></div><span class="site-badge">${esc(r.siteLabel||'Sitio no especificado')}</span><div class="record-actions"><button class="mini-btn" onclick="editRecord('${r.id}')">Editar</button><button class="mini-btn delete" onclick="deleteRecord('${r.id}')">Eliminar</button></div></div>`).join('')}</div>`).join('');
+  el.innerHTML=Object.entries(groups).map(([date,rs])=>`<div class="history-day"><div class="history-day-head"><strong>${dateFrom(date).toLocaleDateString('es-ES',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</strong><span>${rs.length} registro${rs.length===1?'':'s'}</span></div>${rs.map(r=>`<div class="record-row"><div class="record-time">${formatTime(r.time)}</div><div class="record-main"><strong>${esc(r.vaccine||'Registro sin título')}</strong><small>Medicación${r.dose?' · '+esc(r.dose):''}${r.notes?' · '+esc(r.notes):''}</small></div><span class="site-badge">${esc(r.siteLabel||'Sitio no especificado')}</span><div class="record-actions"><button class="mini-btn" onclick="editRecord('${r.id}')">Editar</button><button class="mini-btn delete" onclick="deleteRecord('${r.id}')">Eliminar</button></div></div>`).join('')}</div>`).join('');
 }
 function formatTime(t){if(!t)return '';const [h,m]=t.split(':').map(Number);const ap=h>=12?'PM':'AM',hh=(h%12)||12;return `${hh}:${String(m).padStart(2,'0')} ${ap}`}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
@@ -1172,7 +1263,7 @@ function buildPrintReport(){
   const vaccines=records.filter(r=>r.type==='vaccine').length,meds=records.filter(r=>r.type!=='vaccine').length,days=new Set(records.map(r=>r.date)).size;
   document.getElementById('printReport').innerHTML=`<div class="print-header"><div class="print-title">Vacunas Diego</div><div class="print-meta">Historial médico y de inyecciones<br>Generado el ${new Date().toLocaleString()}</div></div>
   <div class="print-summary"><div class="print-box"><b>${records.length}</b><span>Registros totales</span></div><div class="print-box"><b>${vaccines}</b><span>Vacunas</span></div><div class="print-box"><b>${meds}</b><span>Registros de medicación</span></div></div>
-  ${Object.entries(groups).map(([date,rs])=>`<div class="print-day"><div class="print-day-head">${esc(dateFrom(date).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'}))}</div>${rs.map(r=>`<div class="print-record"><strong>${formatTime(r.time)}</strong><div><b>${esc(r.vaccine||'Registro sin título')}</b> · ${r.type==='vaccine'?'Vacuna':'Medicación / hormona'}${r.dose?' · '+esc(r.dose):''}${r.notes?`<div class="print-note">${esc(r.notes)}</div>`:''}</div><div class="site">${esc(r.siteLabel||'Sitio no especificado')}</div></div>`).join('')}</div>`).join('')}
+  ${Object.entries(groups).map(([date,rs])=>`<div class="print-day"><div class="print-day-head">${esc(dateFrom(date).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'}))}</div>${rs.map(r=>`<div class="print-record"><strong>${formatTime(r.time)}</strong><div><b>${esc(r.vaccine||'Registro sin título')}</b> · Medicación${r.dose?' · '+esc(r.dose):''}${r.notes?`<div class="print-note">${esc(r.notes)}</div>`:''}</div><div class="site">${esc(r.siteLabel||'Sitio no especificado')}</div></div>`).join('')}</div>`).join('')}
   <div class="print-footer">Este reporte es un registro personal de seguimiento y no reemplaza los registros médicos oficiales mantenidos por el proveedor de salud del niño.</div>`;
 }
 function openImport(){document.getElementById('fileInput').click()}
@@ -1709,34 +1800,109 @@ if('serviceWorker' in navigator){
 /* ===== Sleep tracker (Sueño) — added on top of the existing page, fully separate storage ===== */
 (function(){
 
-  let sleepRecords = JSON.parse(localStorage.getItem('diegoSleepRecords') || '[]').filter(r => r && r.id && r.date && r.bedtime && r.wake && (r.kid === 'kid1' || r.kid === 'kid2'));
+  let sleepRecords = JSON.parse(localStorage.getItem('diegoSleepRecords') || '[]').filter(r => r && r.id && r.date && r.bedtime && (r.kid === 'kid1' || r.kid === 'kid2'));
   let sleepKids = Object.assign({ kid1: { name: 'Niño 1', color: '#5468d6' }, kid2: { name: 'Niño 2', color: '#e0729a' } }, JSON.parse(localStorage.getItem('diegoSleepKids') || 'null') || {});
   let currentSleepKid = (localStorage.getItem('diegoSleepCurrentKid') === 'kid2') ? 'kid2' : 'kid1';
+  let sleepChartUid = 0;
+
+  const sleepCss = `
+    .sleep-diff-chip{display:inline-block;margin-top:4px;padding:3px 8px;border-radius:99px;font-size:10px;font-weight:800}
+    .sleep-diff-ok{background:var(--green-soft);color:#4d7c61}
+    .sleep-diff-late{background:var(--orange-soft);color:#8a6420}
+    .sleep-diff-early{background:var(--blue-soft);color:#426f82}
+  `;
+  const sleepStyleEl = document.createElement('style');
+  sleepStyleEl.textContent = sleepCss;
+  document.head.appendChild(sleepStyleEl);
 
   function persistSleep(){ localStorage.setItem('diegoSleepRecords', JSON.stringify(sleepRecords)); }
   function persistSleepKids(){ localStorage.setItem('diegoSleepKids', JSON.stringify(sleepKids)); }
   function sleepUid(){ return 's_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7); }
   function sortedSleepRecords(kid){ return sleepRecords.filter(r => !kid || r.kid === kid).sort((a,b) => (b.date+b.bedtime).localeCompare(a.date+a.bedtime)); }
 
-  function durationMinutes(bedtime, wake){
-    const [bh,bm] = bedtime.split(':').map(Number), [wh,wm] = wake.split(':').map(Number);
-    let bed = bh*60+bm, wk = wh*60+wm;
-    if (wk <= bed) wk += 1440;
-    return wk - bed;
+  /* Times are mapped onto "minutes since noon" so an evening bedtime (or an occasional
+     after-midnight one) sits on one continuous, sortable axis instead of wrapping at 24:00. */
+  function timeToMinutesFromNoon(t){
+    const [h,m] = t.split(':').map(Number);
+    let v = (h*60+m) - 720;
+    if (v < 0) v += 1440;
+    return v;
   }
-  function fmtDuration(mins){
-    const h = Math.floor(mins/60), m = mins % 60;
-    return m === 0 ? h + 'h' : h + 'h ' + m + 'min';
+  function minsToTimeLabel(v){
+    const total = (720 + Math.round(v) + 1440) % 1440;
+    const h = Math.floor(total/60), m = total % 60;
+    const ampm = h >= 12 ? 'p.m.' : 'a.m.';
+    let h12 = h % 12; if (h12 === 0) h12 = 12;
+    return h12 + ':' + String(m).padStart(2,'0') + ' ' + ampm;
   }
-  function moonForDuration(mins){
-    const h = mins/60;
-    if (h >= 10) return '🌕';
-    if (h >= 8) return '🌖';
-    if (h >= 6) return '🌗';
-    if (h >= 4) return '🌘';
-    return '🌑';
+  function fmtTime12(t){ return minsToTimeLabel(timeToMinutesFromNoon(t)); }
+  function avgBedtimeMinutes(records){
+    if (!records.length) return null;
+    return records.reduce((s,r) => s + timeToMinutesFromNoon(r.bedtime), 0) / records.length;
+  }
+  function stdDevMinutes(records, avg){
+    if (records.length < 2 || avg == null) return null;
+    const variance = records.reduce((s,r) => s + Math.pow(timeToMinutesFromNoon(r.bedtime) - avg, 2), 0) / records.length;
+    return Math.sqrt(variance);
+  }
+  function consistencyInfo(std){
+    if (std == null) return null;
+    if (std <= 20) return { label: 'Muy consistente', cls: 'sleep-diff-ok' };
+    if (std <= 45) return { label: 'Consistente', cls: 'sleep-diff-early' };
+    return { label: 'Variable', cls: 'sleep-diff-late' };
   }
   function sleepInitial(kid){ return (sleepKids[kid].name.trim()[0] || '?').toUpperCase(); }
+
+  const SLEEP_BASELINE = timeToMinutesFromNoon('21:00'); // 9:00 p.m. target bedtime
+
+  /* Smooth green -> orange -> red gradient by how far a bedtime sits from the 9pm baseline. */
+  function colorForBaselineDiff(diffMinutes){
+    const cap = 75;
+    const t = Math.max(0, Math.min(1, Math.abs(diffMinutes) / cap));
+    const hue = 140 - t * 140;
+    return 'hsl(' + hue.toFixed(0) + ',70%,56%)';
+  }
+
+  /* Dark-themed inline SVG for the stats card: bars colored by distance from the 9pm
+     baseline, a dotted line marking 9pm, and a shaded band showing the ±30min spread
+     around the recent average — so it reads "on target?" and "drifting?" at a glance. */
+  function buildSleepMiniChart(chrono, avgMins){
+    const W = 320, H = 122, padL = 6, padR = 6, padT = 10, padB = 20;
+    const innerW = W - padL - padR, innerH = H - padT - padB;
+    const values = chrono.map(r => timeToMinutesFromNoon(r.bedtime));
+    const bandLow = avgMins != null ? avgMins - 30 : null, bandHigh = avgMins != null ? avgMins + 30 : null;
+    const refs = values.concat([SLEEP_BASELINE], bandLow != null ? [bandLow, bandHigh] : []);
+    let axisMin = Math.min(...refs), axisMax = Math.max(...refs);
+    const span = (axisMax - axisMin) || 60;
+    const pad = Math.max(20, span * 0.22);
+    axisMin -= pad; axisMax += pad;
+    const axisRange = axisMax - axisMin || 1;
+    const yFor = v => padT + innerH - ((v - axisMin) / axisRange) * innerH;
+
+    let band = '';
+    if (bandLow != null) {
+      const y1 = yFor(bandHigh), y2 = yFor(bandLow);
+      band = '<rect x="' + padL + '" y="' + y1.toFixed(1) + '" width="' + innerW + '" height="' + Math.max(2, y2 - y1).toFixed(1) + '" fill="#ffffff" opacity="0.09" rx="4"/>';
+    }
+    const baseY = yFor(SLEEP_BASELINE);
+    const baseline = '<line x1="' + padL + '" y1="' + baseY.toFixed(1) + '" x2="' + (W - padR) + '" y2="' + baseY.toFixed(1) + '" stroke="#eef1fb" stroke-width="1" stroke-dasharray="3 4" opacity="0.55"/>' +
+      '<text x="' + (W - padR) + '" y="' + (baseY - 4).toFixed(1) + '" text-anchor="end" font-size="8.5" fill="#c3cbef" font-weight="700">9:00 p.m.</text>';
+
+    const n = chrono.length, gap = innerW / n, barW = Math.max(6, Math.min(28, gap * 0.55));
+    let bars = '';
+    chrono.forEach((r, i) => {
+      const v = timeToMinutesFromNoon(r.bedtime);
+      const x = padL + gap * i + (gap - barW) / 2;
+      const y = yFor(v);
+      const h = Math.max(3, (padT + innerH) - y);
+      const color = colorForBaselineDiff(v - SLEEP_BASELINE);
+      const dateLabel = dateFrom(r.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+      bars += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="' + Math.min(5, barW/2).toFixed(1) + '" fill="' + color + '"><title>' + esc(fmtTime12(r.bedtime)) + '</title></rect>';
+      bars += '<text x="' + (x + barW/2).toFixed(1) + '" y="' + (H - 4).toFixed(1) + '" text-anchor="middle" font-size="8" fill="#9fabdc" font-weight="700">' + esc(dateLabel) + '</text>';
+    });
+
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img">' + band + baseline + bars + '</svg>';
+  }
 
   window.selectSleepKid = function(kid){
     currentSleepKid = kid;
@@ -1765,14 +1931,15 @@ if('serviceWorker' in navigator){
     }).join('');
   };
 
-  window.updateSleepDurationPreview = function(){
-    const bedtime = document.getElementById('sleepBedtime').value, wake = document.getElementById('sleepWake').value, prev = document.getElementById('sleepDurationPreview');
+  window.updateSleepPreview = function(){
+    const date = document.getElementById('sleepDate').value, bedtime = document.getElementById('sleepBedtime').value, prev = document.getElementById('sleepDurationPreview');
     if (!prev) return;
-    if (bedtime && wake) {
-      const mins = durationMinutes(bedtime, wake);
-      prev.innerHTML = moonForDuration(mins) + ' Duración estimada: <b>' + fmtDuration(mins) + '</b>';
+    if (date && bedtime) {
+      const d = dateFrom(date);
+      const weekday = d.toLocaleDateString('es-ES', { weekday: 'long' });
+      prev.innerHTML = '🌙 Se registrará: <b>' + esc(weekday) + ' ' + esc(fmtDate(d)) + ', ' + esc(fmtTime12(bedtime)) + '</b>';
     } else {
-      prev.textContent = 'Completa ambas horas para ver la duración.';
+      prev.textContent = 'Elige fecha y hora para ver la confirmación.';
     }
   };
 
@@ -1787,11 +1954,10 @@ if('serviceWorker' in navigator){
     document.getElementById('sleepRecordKid').value = currentSleepKid;
     document.getElementById('sleepDate').value = iso(new Date());
     document.getElementById('sleepBedtime').value = '';
-    document.getElementById('sleepWake').value = '';
     document.getElementById('sleepNotes').value = '';
     document.getElementById('sleepFormTitle').textContent = 'Agregar registro de sueño';
     document.getElementById('sleepSaveBtn').textContent = 'Guardar registro';
-    updateSleepDurationPreview();
+    updateSleepPreview();
   };
 
   window.saveSleepRecord = function(){
@@ -1799,16 +1965,15 @@ if('serviceWorker' in navigator){
     const kid = document.getElementById('sleepRecordKid').value || currentSleepKid;
     const date = document.getElementById('sleepDate').value;
     const bedtime = document.getElementById('sleepBedtime').value;
-    const wake = document.getElementById('sleepWake').value;
     const notes = document.getElementById('sleepNotes').value.trim();
     if (!date) { sleepStatus('Selecciona una fecha.', true); return; }
-    if (!bedtime || !wake) { sleepStatus('Indica la hora de dormir y de despertar.', true); return; }
+    if (!bedtime) { sleepStatus('Indica la hora de dormir.', true); return; }
     if (id) {
       const item = sleepRecords.find(r => r.id === id);
-      if (item) Object.assign(item, { date, bedtime, wake, notes, kid });
+      if (item) Object.assign(item, { date, bedtime, notes, kid });
       sleepStatus('Registro actualizado.');
     } else {
-      sleepRecords.push({ id: sleepUid(), kid, date, bedtime, wake, notes });
+      sleepRecords.push({ id: sleepUid(), kid, date, bedtime, notes });
       sleepStatus('Registro de sueño guardado.');
     }
     persistSleep();
@@ -1823,11 +1988,10 @@ if('serviceWorker' in navigator){
     document.getElementById('sleepRecordKid').value = r.kid;
     document.getElementById('sleepDate').value = r.date;
     document.getElementById('sleepBedtime').value = r.bedtime;
-    document.getElementById('sleepWake').value = r.wake;
     document.getElementById('sleepNotes').value = r.notes || '';
     document.getElementById('sleepFormTitle').textContent = 'Editar registro de sueño';
     document.getElementById('sleepSaveBtn').textContent = 'Guardar cambios';
-    updateSleepDurationPreview();
+    updateSleepPreview();
   };
 
   window.deleteSleepRecord = function(id){
@@ -1843,12 +2007,20 @@ if('serviceWorker' in navigator){
     const list = document.getElementById('sleepList'); if (!list) return;
     const sorted = sortedSleepRecords(currentSleepKid);
     if (!sorted.length) { list.innerHTML = '<div class="empty">Aún no hay registros de sueño para ' + esc(sleepKids[currentSleepKid].name) + '.</div>'; return; }
+    const avg = avgBedtimeMinutes(sorted);
     list.innerHTML = sorted.map(r => {
-      const mins = durationMinutes(r.bedtime, r.wake);
+      const v = timeToMinutesFromNoon(r.bedtime);
+      let diffChip = '';
+      if (avg != null && sorted.length > 1) {
+        const diff = Math.round(v - avg), abs = Math.abs(diff);
+        diffChip = abs < 8
+          ? '<span class="sleep-diff-chip sleep-diff-ok">Cerca de su promedio</span>'
+          : '<span class="sleep-diff-chip ' + (diff > 0 ? 'sleep-diff-late' : 'sleep-diff-early') + '">' + abs + ' min ' + (diff > 0 ? 'más tarde' : 'más temprano') + '</span>';
+      }
       return '<div class="sleep-item">' +
-        '<div class="sleep-item-icon" style="background:' + sleepKids[r.kid].color + '22;color:' + sleepKids[r.kid].color + '">' + moonForDuration(mins) + '</div>' +
-        '<div class="sleep-item-main"><strong>' + esc(fmtDate(dateFrom(r.date))) + '</strong><small>' + esc(r.bedtime) + ' → ' + esc(r.wake) + (r.notes ? ' · ' + esc(r.notes) : '') + '</small></div>' +
-        '<div class="sleep-item-duration"><b>' + esc(fmtDuration(mins)) + '</b><span>duración</span></div>' +
+        '<div class="sleep-item-icon" style="background:' + sleepKids[r.kid].color + '22;color:' + sleepKids[r.kid].color + '">🌙</div>' +
+        '<div class="sleep-item-main"><strong>' + esc(fmtDate(dateFrom(r.date))) + '</strong><small>Se durmió a las ' + esc(fmtTime12(r.bedtime)) + (r.notes ? ' · ' + esc(r.notes) : '') + '</small></div>' +
+        '<div class="sleep-item-duration"><b>' + esc(fmtTime12(r.bedtime)) + '</b><div>' + diffChip + '</div></div>' +
         '<div class="sleep-item-actions"><button class="mini-btn" onclick="editSleepRecord(\'' + r.id + '\')">Editar</button><button class="mini-btn delete" onclick="deleteSleepRecord(\'' + r.id + '\')">Eliminar</button></div>' +
         '</div>';
     }).join('');
@@ -1859,39 +2031,109 @@ if('serviceWorker' in navigator){
     const sorted = sortedSleepRecords(currentSleepKid);
     const name = esc(sleepKids[currentSleepKid].name);
     if (!sorted.length) {
-      card.innerHTML = '<div class="sleep-stats-inner"><div class="sleep-stats-title">' + name + ' · Resumen de sueño</div><div class="sleep-stats-empty">Aún no hay registros. Agrega la primera noche de sueño.</div></div>';
+      card.innerHTML = '<div class="sleep-stats-inner"><div class="sleep-stats-title">' + name + ' · Resumen de sueño</div><div class="sleep-stats-empty">Aún no hay registros. Agrega la primera hora de dormir.</div></div>';
       return;
     }
-    const last = sorted[0], lastMins = durationMinutes(last.bedtime, last.wake);
-    const recent = sorted.slice(0, 7);
-    const avgMins = Math.round(recent.reduce((s,r) => s + durationMinutes(r.bedtime, r.wake), 0) / recent.length);
+    const last = sorted[0];
+    const recent = sorted.slice(0, 10);
+    const avgMins = avgBedtimeMinutes(recent);
+    const std = stdDevMinutes(recent, avgMins);
+    const cons = consistencyInfo(std);
     const chrono = [...recent].reverse();
-    const maxMins = Math.max(...chrono.map(r => durationMinutes(r.bedtime, r.wake)), 60);
-    const bars = chrono.map(r => {
-      const mins = durationMinutes(r.bedtime, r.wake);
-      const pct = Math.max(6, Math.round(mins / maxMins * 100));
-      const label = dateFrom(r.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
-      return '<div class="sleep-week-bar" title="' + esc(fmtDuration(mins)) + '"><div class="sleep-week-bar-fill" style="height:' + pct + '%"></div><div class="sleep-week-bar-label">' + esc(label) + '</div></div>';
-    }).join('');
+    const chartSvg = buildSleepMiniChart(chrono, avgMins);
     card.innerHTML = '<div class="sleep-stats-inner">' +
       '<div class="sleep-stats-title">' + name + ' · Resumen de sueño</div>' +
-      '<div class="sleep-stats-main"><span class="moon">' + moonForDuration(lastMins) + '</span><b>' + esc(fmtDuration(lastMins)) + '</b><span>última noche · ' + esc(fmtDate(dateFrom(last.date))) + '</span></div>' +
-      '<div class="sleep-stats-sub">Promedio de los últimos ' + recent.length + ' registros: <b>' + esc(fmtDuration(avgMins)) + '</b></div>' +
-      '<div class="sleep-week-bars">' + bars + '</div>' +
+      '<div class="sleep-stats-main"><span class="moon">🌙</span><b>' + esc(fmtTime12(last.bedtime)) + '</b><span>última noche · ' + esc(fmtDate(dateFrom(last.date))) + '</span></div>' +
+      '<div class="sleep-stats-sub">Promedio de los últimos ' + recent.length + ' registros: <b>' + esc(minsToTimeLabel(avgMins)) + '</b>' + (cons ? ' · ' + cons.label : '') + '</div>' +
+      '<div class="sleep-week-bars">' + chartSvg + '</div>' +
+      '<div class="sleep-week-legend"><span>┈ 9:00 p.m. (objetivo)</span><span>▭ ±30 min del promedio</span></div>' +
       '</div>';
   };
 
   function sleepCsvRows(){
-    return [['Niño','Fecha','Hora de dormir','Hora de despertar','Duración','Notas'],
-      ...sortedSleepRecords().map(r => [sleepKids[r.kid].name, r.date, r.bedtime, r.wake, fmtDuration(durationMinutes(r.bedtime, r.wake)), r.notes || ''])];
+    return [['Niño','Fecha','Día','Hora de dormir','Notas'],
+      ...sortedSleepRecords().map(r => [sleepKids[r.kid].name, r.date, dateFrom(r.date).toLocaleDateString('es-ES', { weekday: 'long' }), fmtTime12(r.bedtime), r.notes || ''])];
   }
+
+  /* --- Line chart of bedtime over time, y-axis labeled in real clock times --- */
+  function buildBedtimeChart(recordsAsc, color){
+    const pts = recordsAsc.map(r => ({ date: r.date, v: timeToMinutesFromNoon(r.bedtime), label: fmtTime12(r.bedtime) }));
+    if (pts.length < 2) return '';
+    const W = 800, H = 320;
+    const pad = { l: 80, r: 22, t: 20, b: 46 };
+    const innerW = W - pad.l - pad.r, innerH = H - pad.t - pad.b;
+    const values = pts.map(p => p.v);
+    const minVal = Math.min(...values), maxVal = Math.max(...values);
+    const range = (maxVal - minVal) || 60;
+    const padY = range * 0.25;
+    const yMin = minVal - padY, yMax = maxVal + padY;
+    const yRange = (yMax - yMin) || 1;
+    const xFor = i => pts.length === 1 ? pad.l + innerW/2 : pad.l + (i/(pts.length-1)) * innerW;
+    const yFor = v => pad.t + innerH - ((v - yMin)/yRange) * innerH;
+    let grid = '';
+    for (let i = 0; i <= 4; i++){
+      const v = yMin + (i/4) * yRange;
+      const y = yFor(v);
+      grid += '<line x1="'+pad.l+'" y1="'+y.toFixed(1)+'" x2="'+(W-pad.r)+'" y2="'+y.toFixed(1)+'" stroke="#eef3f4" stroke-width="1"/>';
+      grid += '<text x="'+(pad.l-8)+'" y="'+(y+4).toFixed(1)+'" text-anchor="end" font-size="10.5" fill="#72828d">'+minsToTimeLabel(v)+'</text>';
+    }
+    const avg = avgBedtimeMinutes(recordsAsc);
+    let avgLine = '';
+    if (avg != null && avg >= yMin && avg <= yMax){
+      const y = yFor(avg);
+      avgLine = '<line x1="'+pad.l+'" y1="'+y.toFixed(1)+'" x2="'+(W-pad.r)+'" y2="'+y.toFixed(1)+'" stroke="'+color+'" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.55"/>' +
+        '<text x="'+(W-pad.r-4)+'" y="'+(y-6).toFixed(1)+'" text-anchor="end" font-size="10" fill="'+color+'" font-weight="700">Promedio: '+minsToTimeLabel(avg)+'</text>';
+    }
+    const pathD = pts.map((p,i) => (i===0?'M':'L') + ' ' + xFor(i).toFixed(1) + ' ' + yFor(p.v).toFixed(1)).join(' ');
+    const areaD = pathD + ' L ' + xFor(pts.length-1).toFixed(1) + ' ' + (pad.t+innerH).toFixed(1) + ' L ' + xFor(0).toFixed(1) + ' ' + (pad.t+innerH).toFixed(1) + ' Z';
+    let dots = '';
+    pts.forEach((p,i) => {
+      const cx = xFor(i), cy = yFor(p.v);
+      dots += '<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="4.5" fill="#fff" stroke="'+color+'" stroke-width="3"/>';
+      if (pts.length <= 16) dots += '<text x="'+cx.toFixed(1)+'" y="'+(cy-10).toFixed(1)+'" text-anchor="middle" font-size="9.5" fill="#263746" font-weight="700">'+esc(p.label)+'</text>';
+    });
+    let xLabels = '';
+    const step = Math.max(1, Math.ceil(pts.length/10));
+    pts.forEach((p,i) => {
+      if (pts.length > 10 && i % step !== 0 && i !== pts.length-1) return;
+      const x = xFor(i);
+      const lbl = dateFrom(p.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+      xLabels += '<text x="'+x.toFixed(1)+'" y="'+(H-pad.b+20).toFixed(1)+'" text-anchor="middle" font-size="10" fill="#72828d">'+esc(lbl)+'</text>';
+    });
+    const uid = 'sb' + (++sleepChartUid);
+    return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" role="img"><defs><linearGradient id="'+uid+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+color+'" stop-opacity="0.25"/><stop offset="100%" stop-color="'+color+'" stop-opacity="0"/></linearGradient></defs>' +
+      grid + avgLine + '<path d="'+areaD+'" fill="url(#'+uid+')"/><path d="'+pathD+'" fill="none" stroke="'+color+'" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>' + dots + xLabels + '</svg>';
+  }
+
+  function kidSleepSection(kid){
+    const all = sortedSleepRecords(kid);
+    const name = esc(sleepKids[kid].name), color = sleepKids[kid].color;
+    const headHtml = '<div class="print-day-head" style="border-radius:10px;margin-top:14px;background:'+color+'22;color:'+color+'">'+name+'</div>';
+    if (!all.length) return headHtml + '<div class="empty" style="padding:14px 4px">Sin registros de sueño.</div>';
+    const asc = [...all].reverse();
+    const recent = all.slice(0, 14);
+    const avgMins = avgBedtimeMinutes(recent);
+    const std = stdDevMinutes(recent, avgMins);
+    const cons = consistencyInfo(std);
+    const summaryHtml = '<div class="print-summary">' +
+      '<div class="print-box"><b>' + all.length + '</b><span>Registros totales</span></div>' +
+      '<div class="print-box"><b>' + esc(fmtTime12(all[0].bedtime)) + '</b><span>Hora más reciente</span></div>' +
+      '<div class="print-box"><b>' + esc(minsToTimeLabel(avgMins)) + '</b><span>Promedio (últimos ' + recent.length + ')</span></div>' +
+      '<div class="print-box"><b>' + (cons ? esc(cons.label) : '—') + '</b><span>Consistencia</span></div>' +
+      '</div>';
+    const chartSvg = buildBedtimeChart(asc.slice(-30), color);
+    const chartHtml = chartSvg ? '<div class="print-chart-card"><h4>Tendencia de hora de dormir</h4>' + chartSvg + '</div>' : '';
+    const rows = all.map(r => '<tr><td>' + esc(fmtDate(dateFrom(r.date))) + '</td><td>' + esc(dateFrom(r.date).toLocaleDateString('es-ES', { weekday: 'long' })) + '</td><td>' + esc(fmtTime12(r.bedtime)) + '</td><td>' + (r.notes ? esc(r.notes) : '') + '</td></tr>').join('');
+    const tableHtml = '<table class="print-table"><thead><tr><th>Fecha</th><th>Día</th><th>Hora de dormir</th><th>Nota</th></tr></thead><tbody>' + rows + '</tbody></table>';
+    return headHtml + summaryHtml + chartHtml + tableHtml;
+  }
+
   function buildSleepPrintReport(){
-    const sorted = sortedSleepRecords();
-    document.getElementById('printReport').innerHTML = '<div class="print-header"><div class="print-title">Vacunas Diego</div><div class="print-meta">Registro de sueño<br>Generado el ' + new Date().toLocaleString() + '</div></div>' +
-      '<div class="print-summary"><div class="print-box"><b>' + sorted.length + '</b><span>Registros totales</span></div></div>' +
-      '<div class="print-day"><div class="print-day-head">Historial de sueño</div>' +
-      (sorted.length ? sorted.map(r => '<div class="print-record"><strong>' + esc(sleepKids[r.kid].name) + '</strong><div>' + esc(fmtDate(dateFrom(r.date))) + ' · ' + esc(r.bedtime) + '–' + esc(r.wake) + ' (' + esc(fmtDuration(durationMinutes(r.bedtime, r.wake))) + ')' + (r.notes ? '<div class="print-note">' + esc(r.notes) + '</div>' : '') + '</div></div>').join('') : '<div class="empty">No hay registros de sueño.</div>') +
-      '</div><div class="print-footer">Registro personal de sueño de la familia, independiente del historial médico.</div>';
+    document.getElementById('printReport').innerHTML =
+      '<div class="print-header"><div><div class="print-title">Vacunas Diego</div><div style="font-size:12px;color:#4c8298;font-weight:700;margin-top:2px">Reporte de sueño</div></div>' +
+      '<div class="print-meta">Generado el ' + new Date().toLocaleString('es-ES') + '</div></div>' +
+      kidSleepSection('kid1') + kidSleepSection('kid2') +
+      '<div class="print-footer">Registro personal de sueño de la familia, independiente del historial médico. La hora se registra al momento de acostar al niño.</div>';
   }
 
   /* --- Extend tabs, export menu and labels to cover the new Sueño tab --- */
@@ -1955,7 +2197,7 @@ if('serviceWorker' in navigator){
   renderSleepList();
   renderSleepStats();
 
-  console.log('[sleep] tracker loaded v1');
+  console.log('[sleep] tracker loaded v2');
 })();
 </script>
 <script>
