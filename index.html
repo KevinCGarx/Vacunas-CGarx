@@ -53,6 +53,7 @@ label{display:block;font-size:12px;color:var(--muted);font-weight:800;margin:14p
 input,textarea,select{width:100%;border:1px solid var(--line);background:#fbfcfc;color:var(--ink);border-radius:11px;padding:11px 12px;outline:none}
 input:focus,textarea:focus,select:focus{border-color:#91b7c5;box-shadow:0 0 0 3px var(--blue-soft)}
 textarea{min-height:115px;resize:vertical}.time-row{display:flex;gap:8px}.default-pill{display:inline-flex;margin-top:8px;background:var(--green-soft);color:#4d7c61;padding:6px 9px;border-radius:99px;font-size:11px;font-weight:800}
+.dose-row{display:flex;gap:8px;align-items:stretch}.dose-row input{flex:1}.dose-unit-badge{display:flex;align-items:center;justify-content:center;min-width:54px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:#eef2f6;color:var(--muted);font-weight:850;font-size:13px}
 .form-hint{font-size:11px;color:#97a3a9;margin-top:6px}.save-row{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}
 .status{display:none;margin-top:13px;border-radius:12px;padding:10px 12px;font-size:12px}.status.show{display:block}
 
@@ -83,9 +84,11 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
 .wheel-nav:hover{background:var(--blue-soft);color:#2f5f75}
 .wheel-nav:active{transform:scale(.97)}
 .wheel-nav.at-limit{opacity:.3;pointer-events:none}
-.week-wheel-viewport{position:relative;flex:1 1 auto;min-height:280px;overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 14%,#000 86%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 14%,#000 86%,transparent 100%)}
-.week-wheel-list{position:absolute;inset:0;perspective:900px;transform-style:preserve-3d}
+.week-wheel-viewport{position:relative;flex:1 1 auto;min-height:280px;overflow:hidden;touch-action:none;cursor:grab;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 14%,#000 86%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 14%,#000 86%,transparent 100%)}
+.week-wheel-viewport.dragging{cursor:grabbing}
+.week-wheel-list{position:absolute;inset:0;perspective:900px;transform-style:preserve-3d;user-select:none;-webkit-user-select:none}
 .wheel-row{position:absolute;left:0;right:0;top:0;height:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px 12px;border-radius:14px;border:1px solid transparent;background:#8aa6c3;cursor:pointer;transform-origin:center center;backface-visibility:hidden;transition:transform .34s cubic-bezier(.25,1,.5,1),opacity .3s ease,background .25s ease,box-shadow .25s ease,border-color .25s ease;will-change:transform,opacity}
+.week-wheel-list.dragging .wheel-row{transition:opacity .3s ease,background .25s ease,box-shadow .25s ease,border-color .25s ease}
 .wheel-row:hover{background:#2d68a8}
 .wheel-day{font-size:11px;font-weight:850;color:#dbecff;text-transform:uppercase;letter-spacing:.7px;line-height:1.2}
 .wheel-date{font-size:11px;color:#ffffff;line-height:1.2;margin-top:2px}
@@ -93,10 +96,10 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
 .wheel-row.today{background:linear-gradient(160deg,#5aa87c,#7cbd97);border-color:#4d9a6f;box-shadow:0 10px 22px rgba(90,168,124,.32)}
 .wheel-row.today .wheel-day,.wheel-row.today .wheel-date{color:#eaf6ee}
 .wheel-row.today .wheel-zone{color:#fff;font-size:14.5px}
-.wheel-row.focus{background:linear-gradient(160deg,#316a85,#4c8298);border-color:#2b5f78;box-shadow:0px 15px 4px -4px rgb(0 0 0 / 40%)};
+.wheel-row.focus{background:linear-gradient(160deg,#318185,#4c8298);border-color:#2b5f78;box-shadow:0px 15px 4px -4px rgb(0 0 0 / 40%)};
 .wheel-row.focus .wheel-day,.wheel-row.focus .wheel-date{color:#dcebf1}
 .wheel-row.focus .wheel-zone{color:#fff;font-size:15px}
-.wheel-row.today.focus{background:linear-gradient(160deg,#316a85,#4c8298);border-color:#6cbb92;box-shadow:0px 15px 4px -4px rgb(0 0 0 / 40%),0 0 0 2px rgba(124,189,151,.8)}
+.wheel-row.today.focus{background:linear-gradient(160deg,#12d553,#244451);border-color:#6cbb92;box-shadow:0px 15px 4px -4px rgb(0 0 0 / 40%),0 0 0 2px rgba(124,189,151,.8)}
 .wheel-row.today.focus .wheel-day,.wheel-row.today.focus .wheel-date{color:#dcebf1}
 .wheel-row.today.focus .wheel-zone{color:#fff;font-size:15px}
 .wheel-hoy{display:inline-block;background:#fff;color:#3f8059;border-radius:6px;padding:1px 5px;font-size:8.5px;margin-left:4px;vertical-align:1px;font-weight:900;letter-spacing:.3px}
@@ -114,8 +117,33 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
 .inventory-head{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:16px}.inventory-head h2{margin:0;font-size:20px}.inventory-head p{margin:5px 0 0;color:var(--muted);font-size:13px}
 .inventory-layout{display:grid;grid-template-columns:330px minmax(0,1fr);gap:22px}
 .inventory-list{display:flex;flex-direction:column;gap:9px}.inventory-item{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:13px 15px;background:#fff}.inventory-main strong{font-size:13px}.inventory-main small{display:block;color:var(--muted);font-size:11px;margin-top:4px}.inventory-qty{text-align:right;min-width:72px}.inventory-qty b{display:block;font-size:19px;color:var(--blue)}.inventory-qty span{font-size:10px;color:var(--muted)}.inventory-actions{display:flex;gap:4px}.inventory-total{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:13px}.inventory-pill{background:var(--blue-soft);color:#426f82;border-radius:99px;padding:7px 10px;font-size:11px;font-weight:800}
-.inventory-summary{margin-top:22px}.inventory-summary .card{padding:15px}.inventory-summary-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.inventory-summary-head strong{font-size:12px;text-transform:uppercase;letter-spacing:1.1px;color:var(--muted)}.inventory-mini-list{display:flex;gap:7px;flex-wrap:wrap}.inventory-mini{background:#f5f8f7;border:1px solid var(--line);border-radius:10px;padding:7px 9px;font-size:11px}.inventory-mini b{color:var(--blue)}
-.measurement-alert{margin:10px 0 10px;border:1px solid #efd9b0;background:#fff9ef;color:#85652f;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:12px}.measurement-alert strong{font-size:12px}.measurement-alert.hidden{display:none!important}.measurement-card{margin:10px 0 10px}.measurement-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}.measurement-card-head h2{margin:0;font-size:18px}.measurement-card-head p{margin:4px 0 0;color:var(--muted);font-size:12px}.measurement-current{display:flex;gap:9px;flex-wrap:wrap}.measurement-pill{background:#f5f8f7;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:11px}.measurement-pill b{color:var(--blue)}.measurement-layout{display:grid;grid-template-columns:330px minmax(0,1fr);gap:22px}.measurement-list{display:flex;flex-direction:column;gap:9px}.measurement-item{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:13px 15px;background:#fff}.measurement-main strong{font-size:13px}.measurement-main small{display:block;color:var(--muted);font-size:11px;margin-top:4px}.measurement-values{text-align:right;min-width:145px}.measurement-values b{display:block;font-size:13px;color:var(--blue)}.measurement-values span{font-size:10px;color:var(--muted)}.measurement-actions{display:flex;gap:4px}.measurement-status{margin-top:13px}.measurement-empty{padding:22px 10px}.measurement-history{margin-top:18px}.measurement-history-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.measurement-history-head strong{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.inventory-mini-list{display:flex;gap:7px;flex-wrap:wrap}.inventory-mini{background:#f5f8f7;border:1px solid var(--line);border-radius:10px;padding:7px 9px;font-size:11px}.inventory-mini b{color:var(--blue)}
+.somatropin-layout{grid-template-columns:360px minmax(0,1fr)}
+.inventory-stack{display:flex;flex-direction:column;gap:14px}
+.form-grid-2{display:grid;grid-template-columns:1fr 110px;gap:9px}
+.dose-inline{display:flex;align-items:center;gap:8px}.dose-inline input{flex:1}.dose-inline span{min-width:55px;color:var(--muted);font-size:12px;font-weight:800}
+.stock-hero{background:linear-gradient(145deg,#f8fbfb,#eef6f5);border-color:#d5e6e2}
+.stock-hero-main{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+.stock-med-name{font-size:21px;font-weight:900;color:var(--ink)}.stock-med-brand{font-size:12px;color:var(--muted);margin-top:4px}
+.stock-days{font-size:30px;font-weight:900;color:var(--blue);text-align:right}.stock-days-label{font-size:10px;color:var(--muted);text-align:right;font-weight:800}
+.stock-progress{height:9px;background:#e8eeee;border-radius:99px;overflow:hidden;margin-top:15px}.stock-progress>span{display:block;height:100%;background:var(--green);border-radius:99px}
+.stock-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.stock-chip{background:#fff;border:1px solid var(--line);border-radius:99px;padding:7px 9px;font-size:11px;font-weight:800}
+.stock-warning{margin-top:12px;padding:10px 12px;border-radius:11px;background:var(--orange-soft);color:#85652f;font-size:11px;font-weight:750}.stock-warning.red{background:var(--red-soft);color:#a64c4c}
+.active-pen-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}.active-pen-grid label{margin-top:0}
+.reserve-head{display:flex;justify-content:space-between;align-items:center;gap:15px}.reserve-number{font-size:34px;font-weight:900;color:var(--blue)}.reserve-label{font-size:11px;color:var(--muted)}.reserve-actions{display:flex;gap:7px}.lot-form{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-top:15px}.lot-form label{grid-column:1/-1;margin-bottom:0}.lot-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-size:12px}.lot-item:first-child{margin-top:12px}.lot-item small{display:block;color:var(--muted);font-size:10px;margin-top:2px}.lot-badge{padding:5px 8px;border-radius:99px;background:var(--blue-soft);color:#426f82;font-weight:800;font-size:10px}
+@media(max-width:820px){.somatropin-layout{grid-template-columns:1fr}.active-pen-grid{grid-template-columns:1fr 1fr}.active-pen-grid>div:last-child{grid-column:1/-1}}
+@media(max-width:540px){.form-grid-2,.active-pen-grid,.lot-form{grid-template-columns:1fr}.stock-hero-main{flex-direction:column}.stock-days{text-align:left}.stock-days-label{text-align:left}}
+
+.measurement-alert{margin:10px 0 10px;border:1px solid #efd9b0;background:#fff9ef;color:#85652f;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:12px}.measurement-alert strong{font-size:12px}.measurement-alert.hidden{display:none!important}.measurement-current{display:flex;gap:9px;flex-wrap:wrap}.measurement-pill{background:#f5f8f7;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:11px}.measurement-pill b{color:var(--blue)}.measurement-layout{display:grid;grid-template-columns:330px minmax(0,1fr);gap:22px}.measurement-list{display:flex;flex-direction:column;gap:9px}.measurement-item{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:13px 15px;background:#fff}.measurement-main strong{font-size:13px}.measurement-main small{display:block;color:var(--muted);font-size:11px;margin-top:4px}.measurement-values{text-align:right;min-width:145px}.measurement-values b{display:block;font-size:13px;color:var(--blue)}.measurement-values span{font-size:10px;color:var(--muted)}.measurement-actions{display:flex;gap:4px}.measurement-status{margin-top:13px}.measurement-empty{padding:22px 10px}.measurement-history{margin-top:18px}.measurement-history-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.measurement-history-head strong{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+
+.info-card{margin:10px 0 10px;padding:13px 16px;display:flex;flex-direction:column;gap:9px}
+.info-card-title{font-size:11px;text-transform:uppercase;letter-spacing:1.1px;color:var(--muted);font-weight:850}
+.info-card-body{display:flex;align-items:flex-start;gap:16px}
+.info-row{display:flex;flex-direction:column;align-items:flex-start;gap:7px;flex:1;min-width:0}
+.info-row-label{font-size:11px;font-weight:850;color:var(--ink)}
+.info-card-divider{width:1px;align-self:stretch;background:var(--line)}
+@media(max-width:560px){.info-card-body{flex-direction:column;gap:12px}.info-card-divider{width:100%;height:1px}}
+.info-card-note{font-size:10px;color:#9aa5aa;margin-top:-2px}
 @media(max-width:820px){.measurement-layout{grid-template-columns:1fr}.measurement-item{grid-template-columns:1fr auto}.measurement-actions{grid-column:1/3;justify-content:flex-end}}
 @media(max-width:540px){.measurement-item{grid-template-columns:1fr}.measurement-values{text-align:left}.measurement-actions{grid-column:auto;justify-content:flex-end}}
 @media(max-width:820px){.inventory-layout{grid-template-columns:1fr}.inventory-item{grid-template-columns:1fr auto}.inventory-actions{grid-column:1/3;justify-content:flex-end}}
@@ -135,6 +163,47 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
 .modal{width:min(720px,100%);max-height:88vh;overflow:auto;background:#fff;border-radius:20px;box-shadow:0 25px 70px rgba(0,0,0,.2);padding:20px}.modal h2{margin:0;font-size:19px}.modal p{color:var(--muted);font-size:12px;margin:5px 0 15px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}
 .import-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.summary-box{background:#f5f8f7;border:1px solid var(--line);border-radius:12px;padding:10px}.summary-box b{display:block;font-size:18px}.summary-box span{font-size:10px;color:var(--muted)}
 .preview{border:1px solid var(--line);border-radius:12px;overflow:auto;max-height:300px}.preview table{border-collapse:collapse;width:100%;font-size:11px}.preview th,.preview td{text-align:left;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}.preview th{background:#f6f8f7;color:var(--muted)}
+
+.sleep-head{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;flex-wrap:wrap;margin-bottom:16px}.sleep-head h2{margin:0;font-size:20px}.sleep-head p{margin:5px 0 0;color:var(--muted);font-size:13px;max-width:520px}
+.sleep-kid-switch{display:flex;gap:4px;background:#eef2f6;border:1px solid var(--line);border-radius:14px;padding:4px}
+.sleep-kid-pill{display:flex;align-items:center}
+.sleep-kid-select{border:0;background:transparent;border-radius:10px;padding:8px 12px;font-weight:850;font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:7px;transition:.15s}
+.sleep-kid-select:hover{color:var(--ink)}
+.sleep-kid-pill.active .sleep-kid-select{background:#fff;color:var(--ink);box-shadow:0 3px 10px rgba(37,55,68,.1)}
+.kid-avatar{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;flex-shrink:0}
+.sleep-kid-rename{border:0;background:transparent;color:#aab0b5;font-size:12px;cursor:pointer;padding:6px 7px 6px 2px}
+.sleep-kid-rename:hover{color:var(--blue)}
+.sleep-layout{display:grid;grid-template-columns:360px minmax(0,1fr);gap:22px}
+.sleep-stack{display:flex;flex-direction:column;gap:16px}
+@media(max-width:820px){.sleep-layout{grid-template-columns:1fr}}
+.sleep-duration-preview{margin-top:10px;background:#f5f8f7;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12.5px;font-weight:750;color:var(--muted)}
+.sleep-duration-preview b{color:var(--blue);font-size:15px}
+.sleep-stats-card{background:linear-gradient(160deg,#1b2340,#2a3660 55%,#3d4c82);color:#eef1fb;border:none;position:relative;overflow:hidden;padding:22px 20px;min-height:150px}
+.sleep-stats-card:before{content:"";position:absolute;inset:0;background-image:radial-gradient(1.6px 1.6px at 20px 30px,#fff,transparent),radial-gradient(1.6px 1.6px at 90px 75px,#fff,transparent),radial-gradient(1px 1px at 150px 18px,#fff,transparent),radial-gradient(1.6px 1.6px at 215px 95px,#fff,transparent),radial-gradient(1px 1px at 270px 45px,#fff,transparent),radial-gradient(1.6px 1.6px at 330px 115px,#fff,transparent);background-repeat:repeat;background-size:350px 140px;opacity:.5;animation:sleep-twinkle 4s ease-in-out infinite alternate;pointer-events:none}
+@keyframes sleep-twinkle{from{opacity:.3}to{opacity:.75}}
+.sleep-stats-inner{position:relative;z-index:1}
+.sleep-stats-title{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:#aab4e0;font-weight:850;margin-bottom:8px}
+.sleep-stats-main{display:flex;align-items:baseline;gap:9px}
+.sleep-stats-main .moon{font-size:26px}
+.sleep-stats-main b{font-size:30px;font-weight:900}
+.sleep-stats-main span{font-size:12px;color:#c3cbef}
+.sleep-stats-sub{font-size:12px;color:#c3cbef;margin-top:6px}
+.sleep-stats-sub b{color:#fff}
+.sleep-week-bars{display:flex;align-items:flex-end;gap:6px;height:64px;margin-top:16px}
+.sleep-week-bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;height:100%}
+.sleep-week-bar-fill{width:100%;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,#9fb0ff,#5f74e0);min-height:3px}
+.sleep-week-bar-label{font-size:9px;color:#9fabdc;font-weight:800;text-transform:uppercase}
+.sleep-stats-empty{color:#c3cbef;font-size:12.5px;position:relative;z-index:1}
+.sleep-list{display:flex;flex-direction:column;gap:9px}
+.sleep-item{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:#fff}
+.sleep-item-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.sleep-item-main strong{font-size:13px;display:block}
+.sleep-item-main small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.sleep-item-duration{text-align:right}
+.sleep-item-duration b{display:block;color:var(--blue);font-size:14px}
+.sleep-item-duration span{font-size:10px;color:var(--muted)}
+.sleep-item-actions{display:flex;gap:4px;grid-column:1/-1;justify-content:flex-end}
+@media(max-width:540px){.sleep-item{grid-template-columns:auto 1fr}.sleep-item-duration{grid-column:1/3;text-align:left;display:flex;gap:6px;align-items:baseline}}
 
 #printReport{display:none}
 
@@ -244,9 +313,28 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
   <button class="tab-btn active" id="tabRegistro" onclick="switchTab('registro')">Registro</button>
   <button class="tab-btn" id="tabInventario" onclick="switchTab('inventario')">Inventario</button>
   <button class="tab-btn" id="tabMedidas" onclick="switchTab('medidas')">Peso y talla</button>
+  <button class="tab-btn" id="tabSueno" onclick="switchTab('sueno')">🌙 Sueño</button>
 </nav>
 
 <div class="tab-panel active" id="panelRegistro">
+<div class="measurement-alert" id="measurementAlert"></div>
+
+<div class="card info-card">
+  <div class="info-card-title">Resumen</div>
+  <div class="info-card-body">
+    <div class="info-row">
+      <span class="info-row-label">Mensual</span>
+      <div class="measurement-current" id="measurementCurrent"></div>
+    </div>
+    <div class="info-card-divider"></div>
+    <div class="info-row">
+      <span class="info-row-label">Somatropina</span>
+      <div class="inventory-mini-list" id="inventoryMiniList"></div>
+    </div>
+  </div>
+  <div class="info-card-note">Al guardar una inyección, se descuenta automáticamente la dosis del cartucho activo. Si no hay cartucho activo, se abre uno del stock sellado.</div>
+</div>
+
 <div class="datebar">
   <button onclick="changeDay(-1)" aria-label="Día anterior">‹</button>
   <div class="date-main"><div class="weekday" id="weekday"></div><div class="date" id="dateText"></div></div>
@@ -260,29 +348,13 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
   </div>
 </div>
 
-<div class="measurement-alert" id="measurementAlert"></div>
-
-<div class="card measurement-card">
-  <div class="measurement-card-head">
-    <div><h2>Control mensual</h2><p>Último registro de peso y talla, y estado del mes actual.</p></div>
-  </div>
-  <div class="measurement-current" id="measurementCurrent"></div>
-</div>
-
-<div class="inventory-summary">
-  <div class="card">
-    <div class="inventory-summary-head"><strong>Existencias disponibles</strong><span style="font-size:11px;color:var(--muted)">Se descuenta 1 al guardar una nueva inyección</span></div>
-    <div class="inventory-mini-list" id="inventoryMiniList"></div>
-  </div>
-</div>
-
 <main class="layout">
 <section class="card">
   <div class="section-title">Detalles de la inyección</div>
 
   <label for="time">Hora</label>
-  <input id="time" type="time" value="20:00">
-  <div class="default-pill">● Hora por defecto: 8:00 PM</div>
+  <input id="time" type="time" value="20:30">
+  <div class="default-pill">● Hora por defecto: 8:30 PM</div>
 
   <label for="type">Tipo</label>
   <select id="type">
@@ -291,10 +363,18 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
   </select>
 
   <label for="vaccine">Vacuna / Medicación</label>
-  <input id="vaccine" type="text" placeholder="Ejemplo: Hormona de crecimiento">
+  <select id="vaccine" onchange="applyVaccineSelection()">
+    <option value="">Selecciona un medicamento del inventario...</option>
+  </select>
+  <div class="form-hint" id="vaccineStockHint"></div>
 
-  <label for="dose">Dosis <span style="font-weight:500;color:#9aa5aa">(opcional)</span></label>
-  <input id="dose" type="text" placeholder="Ejemplo: 1.5 mg">
+  <label for="dose">Dosis</label>
+  <div class="dose-row">
+    <input id="doseAmount" type="number" step="0.01" min="0" placeholder="0.00" oninput="renderDosePreview()">
+    <span class="dose-unit-badge" id="doseUnitBadge">—</span>
+  </div>
+  <input id="dose" type="hidden">
+  <div class="form-hint" id="doseHint"></div>
 
   <label for="notes">Notas</label>
   <textarea id="notes" placeholder="Cualquier reacción, observación o nota útil..."></textarea>
@@ -332,7 +412,7 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
 
 <section class="card week-wheel-card">
   <div class="week-wheel-head">
-    <span class="week-wheel-title">Semana actual</span>
+    <span class="week-wheel-title">Mes actual</span>
     <button id="returnTodayBtn" class="hoy-btn" onclick="returnToToday()" hidden>Volver a hoy</button>
   </div>
   <button class="wheel-nav" id="wheelUpBtn" onclick="wheelUp()" aria-label="Día anterior">▲</button>
@@ -358,33 +438,64 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
 
 <div class="tab-panel" id="panelInventario">
   <div class="inventory-head">
-    <div><h2>Inventario</h2><p>Controla cuántas unidades de cada medicamento o vacuna tiene actualmente el familiar.</p></div>
+    <div><h2>Inventario de somatropina</h2><p>Control de cartuchos sellados, cartucho activo y previsión de existencias.</p></div>
   </div>
-  <div class="inventory-layout">
+  <div class="inventory-layout somatropin-layout">
     <section class="card">
-      <div class="section-title" id="inventoryFormTitle">Agregar al inventario</div>
+      <div class="section-title" id="inventoryFormTitle">Configuración del medicamento</div>
       <input id="inventoryId" type="hidden">
-      <label for="inventoryName">Medicamento / vacuna</label>
-      <input id="inventoryName" type="text" placeholder="Ejemplo: Hormona de crecimiento">
-      <label for="inventoryType">Tipo</label>
-      <select id="inventoryType"><option value="medication">Medicación</option><option value="vaccine">Vacuna</option><option value="other">Otro</option></select>
-      <label for="inventoryQuantity">Cantidad disponible</label>
-      <input id="inventoryQuantity" type="number" min="0" step="1" placeholder="Ejemplo: 10">
-      <label for="inventoryUnit">Unidad</label>
-      <input id="inventoryUnit" type="text" placeholder="Ejemplo: dosis, frascos, ampollas">
-      <div class="save-row">
-        <button class="btn" onclick="clearInventoryForm()">Resetear</button>
-        <button class="btn primary" id="inventorySaveBtn" onclick="saveInventoryItem()">Agregar al inventario</button>
+      <label for="inventoryName">Medicamento</label>
+      <input id="inventoryName" type="text" value="Somatropina" placeholder="Ejemplo: Somatropina">
+      <label for="inventoryBrand">Marca / presentación</label>
+      <input id="inventoryBrand" type="text" placeholder="Ejemplo: Norditropin FlexPro 10 mg/1.5 mL">
+      <div class="form-grid-2">
+        <div><label for="inventoryStrength">Contenido por cartucho / pluma</label><input id="inventoryStrength" type="number" min="0" step="0.01" placeholder="Ejemplo: 10"></div>
+        <div><label for="inventoryStrengthUnit">Unidad</label><select id="inventoryStrengthUnit"><option value="mg">mg</option><option value="IU">IU</option></select></div>
       </div>
+      <label for="inventoryDailyDose">Dosis diaria prescrita</label>
+      <div class="dose-inline"><input id="inventoryDailyDose" type="number" min="0" step="0.01" placeholder="Ejemplo: 1.2"><span id="inventoryDoseUnit">mg/día</span></div>
+      <div class="form-hint">La dosis se usa para prellenar Registro y calcular la previsión. Confirma siempre la dosis indicada por su profesional de salud.</div>
+      <div class="save-row"><button class="btn" onclick="clearInventoryForm()">Resetear</button><button class="btn primary" id="inventorySaveBtn" onclick="saveInventoryItem()">Guardar configuración</button></div>
       <div class="status" id="inventoryStatus"></div>
     </section>
-    <section class="card">
-      <div class="inventory-total" id="inventoryTotals"></div>
-      <div class="inventory-list" id="inventoryList"></div>
+    <section class="inventory-stack">
+      <div class="card stock-hero" id="inventoryStockHero"></div>
+      <div class="card">
+        <div class="section-title">Cartucho activo</div>
+        <div class="active-pen-grid">
+          <div><label for="inventoryActiveRemaining">Restante</label><div class="dose-inline"><input id="inventoryActiveRemaining" type="number" min="0" step="0.01" placeholder="Sin cartucho activo"><span id="inventoryActiveUnit">mg</span></div></div>
+          <div><label for="inventoryOpenedDate">Fecha de apertura / reconstitución</label><input id="inventoryOpenedDate" type="date"></div>
+          <div><label for="inventoryStabilityDays">Ventana tras apertura (días)</label><input id="inventoryStabilityDays" type="number" min="1" step="1" placeholder="Ejemplo: 28"></div>
+        </div>
+        <div class="form-hint">La app calcula una fecha de revisión a partir de estos datos. No presupone que 28 días sea válido para todas las presentaciones: usa el plazo indicado en el envase o por su profesional de salud.</div>
+      </div>
+      <div class="card">
+        <div class="section-title">Stock sellado</div>
+        <div class="reserve-head"><div><div class="reserve-number" id="inventoryUnopenedStock">0</div><div class="reserve-label">cartuchos / plumas sin abrir</div></div><div class="reserve-actions"><button class="btn" onclick="adjustUnopenedStock(-1)">− 1</button><button class="btn" onclick="adjustUnopenedStock(1)">+ 1</button></div></div>
+        <div class="lot-form"><label for="inventoryLotExpiration">Caducidad del lote sellado</label><input id="inventoryLotExpiration" type="date"><button class="btn" onclick="addInventoryLot()">Añadir cartucho sellado</button></div>
+        <div id="inventoryLots"></div>
+        <div class="form-hint">Los lotes se muestran por caducidad para favorecer FIFO, es decir, usar primero el lote que caduca antes.</div>
+      </div>
     </section>
   </div>
+  <div class="card" id="simpleMedsCard">
+    <div class="inventory-head" style="margin-bottom:14px">
+      <div><h2 style="font-size:16px">Botiquín (otros medicamentos)</h2><p>Agrega cualquier otro medicamento o insumo con una cantidad simple. Aparecerá como opción al escribir en Registro y se descuenta del stock cada vez que lo uses ahí.</p></div>
+    </div>
+    <input id="simpleMedId" type="hidden">
+    <div class="form-grid-2">
+      <div><label for="simpleMedName">Nombre</label><input id="simpleMedName" type="text" placeholder="Ejemplo: Paracetamol gotas"></div>
+      <div><label for="simpleMedUnit">Unidad</label><input id="simpleMedUnit" type="text" list="simpleMedUnitOptions" placeholder="Ejemplo: frascos"><datalist id="simpleMedUnitOptions"><option value="unidades"><option value="pastillas"><option value="ml"><option value="dosis"><option value="frascos"><option value="sobres"></datalist></div>
+    </div>
+    <div class="form-grid-2">
+      <div><label for="simpleMedQuantity">Cantidad disponible</label><input id="simpleMedQuantity" type="number" min="0" step="1" placeholder="Ejemplo: 10"></div>
+      <div><label for="simpleMedNotes">Notas <span style="font-weight:500;color:#9aa5aa">(opcional)</span></label><input id="simpleMedNotes" type="text" placeholder="Ejemplo: refrigerar"></div>
+    </div>
+    <div class="save-row"><button class="btn" onclick="clearSimpleMedForm()">Resetear</button><button class="btn primary" id="simpleMedSaveBtn" onclick="saveSimpleMed()">Guardar medicamento</button></div>
+    <div class="status" id="simpleMedStatus"></div>
+    <div id="simpleMedList" style="margin-top:6px"></div>
+  </div>
 </div>
-
 <div class="tab-panel" id="panelMedidas">
   <div class="inventory-head">
     <div><h2>Peso y talla</h2><p>Registra una medición de peso y estatura una vez al mes para llevar su seguimiento.</p></div>
@@ -410,6 +521,37 @@ svg{width:min(410px,82%);height:475px;overflow:visible}
     <section class="card">
       <div class="measurement-history-head"><strong>Historial mensual</strong></div>
       <div class="measurement-list" id="measurementList"></div>
+    </section>
+  </div>
+</div>
+<div class="tab-panel" id="panelSueno">
+  <div class="sleep-head">
+    <div><h2>🌙 Sueño</h2><p>Registra la hora de dormir y despertar de cada niño. Estos registros son independientes del resto de la app.</p></div>
+    <div class="sleep-kid-switch" id="sleepKidSwitch"></div>
+  </div>
+  <div class="sleep-layout">
+    <section class="card">
+      <div class="section-title" id="sleepFormTitle">Agregar registro de sueño</div>
+      <input id="sleepRecordId" type="hidden">
+      <input id="sleepRecordKid" type="hidden">
+      <label for="sleepDate">Fecha</label>
+      <input id="sleepDate" type="date">
+      <div class="time-row">
+        <div style="flex:1"><label for="sleepBedtime">Hora de dormir</label><input id="sleepBedtime" type="time" oninput="updateSleepDurationPreview()"></div>
+        <div style="flex:1"><label for="sleepWake">Hora de despertar</label><input id="sleepWake" type="time" oninput="updateSleepDurationPreview()"></div>
+      </div>
+      <div class="sleep-duration-preview" id="sleepDurationPreview">Completa ambas horas para ver la duración.</div>
+      <label for="sleepNotes">Notas <span style="font-weight:500;color:#9aa5aa">(opcional)</span></label>
+      <textarea id="sleepNotes" placeholder="Ejemplo: se despertó llorando, siesta incluida, le costó dormir..."></textarea>
+      <div class="save-row"><button class="btn" onclick="clearSleepForm()">Resetear</button><button class="btn primary" id="sleepSaveBtn" onclick="saveSleepRecord()">Guardar registro</button></div>
+      <div class="status" id="sleepStatus"></div>
+    </section>
+    <section class="sleep-stack">
+      <div class="card sleep-stats-card" id="sleepStatsCard"></div>
+      <div class="card">
+        <div class="measurement-history-head"><strong>Historial de sueño</strong></div>
+        <div class="sleep-list" id="sleepList"></div>
+      </div>
     </section>
   </div>
 </div>
@@ -515,7 +657,7 @@ function onLoggedIn(user){
   document.getElementById('userInitials').textContent=(email[0]||'?').toUpperCase();
   document.getElementById('userEmailShort').textContent=email.split('@')[0];
   document.getElementById('userEmailFull').textContent=email;
-  renderBody();renderDate();renderHistory();renderWeekWheel();
+  renderBody();renderDate();renderHistory();renderWeekWheel();clearInventoryForm();renderInventorySummary();
   const authScreen=document.getElementById('authScreen'),appRoot=document.getElementById('appRoot');
   authScreen.classList.add('leaving');
   appRoot.classList.add('pre-show');
@@ -563,65 +705,52 @@ function fmtWheelDate(d){
 }
 
 
-// Week wheel state - fixed to current week, selection index for navigation
-/* ---- Week wheel (game-menu style) ---- */
-let wheelWeekStart=(()=>{const t=new Date();t.setHours(12,0,0,0);t.setDate(t.getDate()-t.getDay());return t})();
+// Month wheel state - fixed to current calendar month, selection index for navigation
+/* ---- Month wheel (game-menu style) ---- */
+let wheelMonthStart=(()=>{const t=new Date();t.setHours(12,0,0,0);t.setDate(1);return t})();
+const WHEEL_DAY_COUNT=new Date(wheelMonthStart.getFullYear(),wheelMonthStart.getMonth()+1,0).getDate();
 let selectedWheelIndex=0;
 let wheelRows=[];
 
 const WHEEL_ROW_H=110;    // must match .wheel-row height in CSS
 const WHEEL_VIEW_H=310;  // fallback if viewport clientHeight isn't ready
 
-function shiftWheelWeek(n){/* disabled - fixed to current week */}
+function shiftWheelWeek(n){/* disabled - fixed to current month */}
 function jumpToWheelDay(isoStr){currentDate=dateFrom(isoStr);renderDate()}
 
-function wheelDayDate(i){const d=new Date(wheelWeekStart);d.setDate(d.getDate()+i);return d}
-function todayWheelIndex(){const t=iso(new Date());for(let i=0;i<7;i++){if(iso(wheelDayDate(i))===t)return i}return -1}
+function wheelDayDate(i){const d=new Date(wheelMonthStart);d.setDate(d.getDate()+i);return d}
+function todayWheelIndex(){const t=iso(new Date());for(let i=0;i<WHEEL_DAY_COUNT;i++){if(iso(wheelDayDate(i))===t)return i}return -1}
 
 function wheelUp(){if(selectedWheelIndex>0){selectedWheelIndex--;renderWeekWheel()}}
-function wheelDown(){if(selectedWheelIndex<6){selectedWheelIndex++;renderWeekWheel()}}
-function selectWheelDay(index){selectedWheelIndex=Math.max(0,Math.min(6,index));renderWeekWheel()}
+function wheelDown(){if(selectedWheelIndex<WHEEL_DAY_COUNT-1){selectedWheelIndex++;renderWeekWheel()}}
+function selectWheelDay(index){if(wheelJustDragged)return;selectedWheelIndex=Math.max(0,Math.min(WHEEL_DAY_COUNT-1,index));renderWeekWheel()}
 function returnToToday(){const i=todayWheelIndex();if(i>=0)selectedWheelIndex=i;renderWeekWheel()}
 
-function renderWeekWheel(){
-  const wrap=document.getElementById('weekWheelList');
-  if(!wrap)return;
-  const todayIso=iso(new Date());
-  const todayIdx=todayWheelIndex();
-
-  // Build the 7 rows once
-  if(!wheelRows.length){
-    selectedWheelIndex=Math.max(0,todayIdx);
-    for(let i=0;i<7;i++){
-      const d=wheelDayDate(i);
-      const {weekday,label}=fmtWheelDate(d);
-      const row=document.createElement('div');
-      row.className='wheel-row';
-      row.innerHTML=`<span class="wheel-day">${weekday}</span><span class="wheel-date">${label}</span><span class="wheel-zone">${zoneNames[scheduledZoneFor(d)]}</span>`;
-      row.addEventListener('click',()=>selectWheelDay(i));
-      wrap.appendChild(row);
-      wheelRows.push(row);
-    }
-  }
-
+// Paints every row's transform/opacity/classes for a given (possibly fractional,
+// possibly out-of-range while rubber-banding) wheel position. Shared by the
+// normal render pass and by live pointer-drag updates.
+function positionWheelRows(indexFloat){
   const viewport=document.getElementById('weekWheelViewport');
   const centerY=((viewport&&viewport.clientHeight)||WHEEL_VIEW_H)/2;
+  const todayIso=iso(new Date());
+  const focusIdx=Math.round(indexFloat);
 
   wheelRows.forEach((row,i)=>{
     const isToday=iso(wheelDayDate(i))===todayIso;
-    const offset=i-selectedWheelIndex;
+    const offset=i-indexFloat;
     const dist=Math.abs(offset);
+    const isFocus=i===focusIdx;
 
     // Absolute px positioning → every step is exactly one row tall
     const y=centerY-WHEEL_ROW_H/2+offset*WHEEL_ROW_H;
-    const scale=offset===0?1:Math.max(0.62,1-dist*0.12);
-    const opacity=offset===0?1:Math.max(0.22,1-dist*0.24);
-    const rotX=offset===0?0:(offset<0?1:-1)*Math.min(dist,3)*12;
+    const scale=isFocus?1:Math.max(0.62,1-dist*0.12);
+    const opacity=isFocus?1:Math.max(0.22,1-dist*0.24);
+    const rotX=isFocus?0:(offset<0?1:-1)*Math.min(dist,3)*12;
 
     row.style.transform=`translateY(${y.toFixed(1)}px) scale(${scale.toFixed(3)}) rotateX(${rotX}deg)`;
     row.style.opacity=opacity.toFixed(2);
-    row.style.zIndex=String(20-dist);
-    row.classList.toggle('focus',offset===0);
+    row.style.zIndex=String(20-Math.round(dist));
+    row.classList.toggle('focus',isFocus);
     row.classList.toggle('today',isToday);
 
     const daySpan=row.querySelector('.wheel-day');
@@ -632,11 +761,94 @@ function renderWeekWheel(){
       badge.remove();
     }
   });
+}
 
-  // Dim the arrows at the ends of the week
+let wheelDrag=null;
+let wheelJustDragged=false;
+const WHEEL_DRAG_THRESHOLD=6; // px of movement before a touch/click counts as a drag
+
+function wheelClampSoft(raw){
+  const max=WHEEL_DAY_COUNT-1;
+  if(raw<0)return raw*0.35;
+  if(raw>max)return max+(raw-max)*0.35;
+  return raw;
+}
+
+function setupWheelDrag(){
+  const viewport=document.getElementById('weekWheelViewport');
+  const list=document.getElementById('weekWheelList');
+  if(!viewport||!list||viewport.dataset.dragReady)return;
+  viewport.dataset.dragReady='1';
+
+  viewport.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    wheelDrag={pointerId:e.pointerId,startY:e.clientY,startIndex:selectedWheelIndex,currentIndex:selectedWheelIndex,lastY:e.clientY,lastT:performance.now(),vy:0,moved:false};
+  });
+
+  viewport.addEventListener('pointermove',e=>{
+    if(!wheelDrag||e.pointerId!==wheelDrag.pointerId)return;
+    const dy=e.clientY-wheelDrag.startY;
+    if(!wheelDrag.moved){
+      if(Math.abs(dy)<WHEEL_DRAG_THRESHOLD)return;
+      wheelDrag.moved=true;
+      wheelJustDragged=true;
+      try{viewport.setPointerCapture(e.pointerId)}catch(err){}
+      viewport.classList.add('dragging');
+      list.classList.add('dragging');
+    }
+    e.preventDefault();
+    const now=performance.now();
+    const dt=now-wheelDrag.lastT;
+    if(dt>0)wheelDrag.vy=(e.clientY-wheelDrag.lastY)/dt;
+    wheelDrag.lastY=e.clientY;wheelDrag.lastT=now;
+    wheelDrag.currentIndex=wheelClampSoft(wheelDrag.startIndex-dy/WHEEL_ROW_H);
+    positionWheelRows(wheelDrag.currentIndex);
+  });
+
+  function endDrag(e){
+    if(!wheelDrag||e.pointerId!==wheelDrag.pointerId)return;
+    viewport.classList.remove('dragging');
+    list.classList.remove('dragging');
+    if(wheelDrag.moved){
+      // Project a little further using release velocity, for a natural flick-to-scroll feel
+      const projected=wheelDrag.currentIndex-wheelDrag.vy/WHEEL_ROW_H*140;
+      selectedWheelIndex=Math.round(Math.max(0,Math.min(WHEEL_DAY_COUNT-1,projected)));
+      renderWeekWheel();
+      setTimeout(()=>{wheelJustDragged=false},80);
+    }
+    wheelDrag=null;
+  }
+  viewport.addEventListener('pointerup',endDrag);
+  viewport.addEventListener('pointercancel',endDrag);
+}
+
+function renderWeekWheel(){
+  const wrap=document.getElementById('weekWheelList');
+  if(!wrap)return;
+  const todayIdx=todayWheelIndex();
+
+  // Build the month's rows once
+  if(!wheelRows.length){
+    selectedWheelIndex=Math.max(0,todayIdx);
+    for(let i=0;i<WHEEL_DAY_COUNT;i++){
+      const d=wheelDayDate(i);
+      const {weekday,label}=fmtWheelDate(d);
+      const row=document.createElement('div');
+      row.className='wheel-row';
+      row.innerHTML=`<span class="wheel-day">${weekday}</span><span class="wheel-date">${label}</span><span class="wheel-zone">${zoneNames[scheduledZoneFor(d)]}</span>`;
+      row.addEventListener('click',()=>selectWheelDay(i));
+      wrap.appendChild(row);
+      wheelRows.push(row);
+    }
+    setupWheelDrag();
+  }
+
+  positionWheelRows(selectedWheelIndex);
+
+  // Dim the arrows at the ends of the month
   const upBtn=document.getElementById('wheelUpBtn'),downBtn=document.getElementById('wheelDownBtn');
   if(upBtn)upBtn.classList.toggle('at-limit',selectedWheelIndex===0);
-  if(downBtn)downBtn.classList.toggle('at-limit',selectedWheelIndex===6);
+  if(downBtn)downBtn.classList.toggle('at-limit',selectedWheelIndex===WHEEL_DAY_COUNT-1);
 
   // "Volver a hoy" lives in the card header
   const todayBtn=document.getElementById('returnTodayBtn');
@@ -727,38 +939,49 @@ function editMeasurement(id){const m=measurements.find(x=>x.id===id);if(!m)retur
 function deleteMeasurement(id){const m=measurements.find(x=>x.id===id);if(!m)return;if(!confirm(`¿Eliminar la medición de ${measurementMonthLabel(m.month)}?`))return;measurements=measurements.filter(x=>x.id!==id);persistMeasurements();renderMeasurements();renderMeasurementSummary();measurementStatus('Medición eliminada.')}
 
 function inventoryTypeLabel(t){return t==='vaccine'?'Vacuna':t==='other'?'Otro':'Medicación'}
+function inventoryPrimary(){return inventory.find(i=>i.name.toLocaleLowerCase()==='somatropina')||inventory[0]||null}
+function parseDoseValue(value){const m=String(value||'').replace(',','.').match(/(\d+(?:\.\d+)?)\s*(mg|iu)?/i);return m?{value:Number(m[1]),unit:(m[2]||'mg').toUpperCase()}:null}
+function addDaysISO(isoDate,days){if(!isoDate||!Number.isFinite(Number(days)))return '';const d=dateFrom(isoDate);d.setDate(d.getDate()+Number(days));return iso(d)}
+function inventoryTotalAvailable(i){return i?Number(i.activeRemaining||0)+Number(i.unopenedStock||0)*Number(i.strength||0):0}
+function inventoryDaysRemaining(i){if(!i||!Number(i.dailyDose)||i.dailyDose<=0)return null;return Math.max(0,Math.floor(inventoryTotalAvailable(i)/i.dailyDose))}
+function inventoryExpiryStatus(i){if(!i?.openedDate||!i?.stabilityDays)return null;const expiry=addDaysISO(i.openedDate,i.stabilityDays),today=iso(new Date()),days=Math.ceil((dateFrom(expiry)-dateFrom(today))/86400000);return {expiry,days}}
 function renderInventorySummary(){
-  const el=document.getElementById('inventoryMiniList');if(!el)return;
-  if(!inventory.length){el.innerHTML='<span class="inventory-mini">Sin medicamentos o vacunas registrados.</span>';return}
-  el.innerHTML=inventory.map(i=>`<span class="inventory-mini">${esc(i.name)}: <b>${i.quantity} ${esc(i.unit)}</b></span>`).join('');
+  const el=document.getElementById('inventoryMiniList');if(!el)return;const i=inventoryPrimary();
+  if(!i){el.innerHTML='<span class="inventory-mini">Configura la somatropina en Inventario.</span>';return}
+  const days=inventoryDaysRemaining(i);el.innerHTML=`<span class="inventory-mini">Activo: <b>${Number(i.activeRemaining||0).toLocaleString('es-MX',{maximumFractionDigits:2})} ${esc(i.strengthUnit||'mg')}</b></span><span class="inventory-mini">Sellado: <b>${Number(i.unopenedStock||0)}</b></span>${days!==null?`<span class="inventory-mini">Previsión: <b>${days} días</b></span>`:''}`;
 }
 function renderInventory(){
-  const list=document.getElementById('inventoryList'),totals=document.getElementById('inventoryTotals');if(!list)return;
-  const med=inventory.filter(i=>i.type==='medication').length,vax=inventory.filter(i=>i.type==='vaccine').length;
-  totals.innerHTML=`<span class="inventory-pill">${inventory.length} artículo${inventory.length===1?'':'s'}</span><span class="inventory-pill">${med} medicación${med===1?'':'es'}</span><span class="inventory-pill">${vax} vacuna${vax===1?'':'s'}</span>`;
-  if(!inventory.length){list.innerHTML='<div class="empty">Aún no hay artículos en el inventario.</div>';return}
-  list.innerHTML=inventory.map(i=>`<div class="inventory-item"><div class="inventory-main"><strong>${esc(i.name)}</strong><small>${inventoryTypeLabel(i.type)}</small></div><div class="inventory-qty"><b>${i.quantity}</b><span>${esc(i.unit)}</span></div><div class="inventory-actions"><button class="mini-btn" onclick="editInventoryItem('${i.id}')">Editar</button><button class="mini-btn delete" onclick="deleteInventoryItem('${i.id}')">Eliminar</button></div></div>`).join('');
+  const i=inventoryPrimary(),hero=document.getElementById('inventoryStockHero');if(!hero)return;
+  if(!i){hero.innerHTML='<div class="empty">Aún no hay configuración. Completa los datos de somatropina para conectar Inventario con Registro.</div>';document.getElementById('inventoryUnopenedStock').textContent='0';document.getElementById('inventoryLots').innerHTML='';return}
+  const days=inventoryDaysRemaining(i),total=inventoryTotalAvailable(i),expiry=inventoryExpiryStatus(i),strength=Number(i.strength||0),active=Number(i.activeRemaining||0),reserve=Number(i.unopenedStock||0),maxStock=Math.max(total,strength||1),pct=Math.min(100,Math.max(0,total/maxStock*100));
+  let warning='';if(expiry&&expiry.days<0)warning=`<div class="stock-warning red">⚠ El cartucho activo superó la fecha calculada de revisión (${esc(fmtDate(dateFrom(expiry.expiry)))}). Verifica la estabilidad específica de esta presentación.</div>`;else if(expiry&&expiry.days<=5)warning=`<div class="stock-warning">⚠ El cartucho activo entra en su fecha calculada de revisión el ${esc(fmtDate(dateFrom(expiry.expiry)))}.</div>`;else if(days!==null&&days<=14)warning=`<div class="stock-warning">Stock aproximado para ${days} días. Considera gestionar el siguiente suministro según las indicaciones recibidas.</div>`;
+  hero.innerHTML=`<div class="stock-hero-main"><div><div class="stock-med-name">${esc(i.name)}</div><div class="stock-med-brand">${esc(i.brand||'Presentación no especificada')}</div></div><div><div class="stock-days">${days===null?'—':days}</div><div class="stock-days-label">días estimados</div></div></div><div class="stock-progress"><span style="width:${pct}%"></span></div><div class="stock-meta"><span class="stock-chip">Activo: ${active.toLocaleString('es-MX',{maximumFractionDigits:2})} ${esc(i.strengthUnit||'mg')}</span><span class="stock-chip">Sellado: ${reserve}</span><span class="stock-chip">Por cartucho: ${strength||'—'} ${esc(i.strengthUnit||'mg')}</span><span class="stock-chip">Dosis: ${Number(i.dailyDose||0).toLocaleString('es-MX',{maximumFractionDigits:2})} ${esc(i.dailyDoseUnit||i.strengthUnit||'mg')}/día</span></div>${warning}`;
+  document.getElementById('inventoryUnopenedStock').textContent=reserve;document.getElementById('inventoryActiveRemaining').value=active||'';document.getElementById('inventoryActiveUnit').textContent=i.strengthUnit||'mg';document.getElementById('inventoryOpenedDate').value=i.openedDate||'';document.getElementById('inventoryStabilityDays').value=i.stabilityDays||'';document.getElementById('inventoryDoseUnit').textContent=(i.strengthUnit||'mg')+'/día';
+  const lots=[...(i.lots||[])].sort((a,b)=>(a.expiration||'9999').localeCompare(b.expiration||'9999'));document.getElementById('inventoryLots').innerHTML=lots.length?lots.map((l,idx)=>`<div class="lot-item"><div><b>Lote ${idx+1}</b><small>${l.expiration?'Caduca el '+esc(fmtDate(dateFrom(l.expiration))):'Sin caducidad registrada'}</small></div><div><span class="lot-badge">${Number(l.quantity||0)} sellado${Number(l.quantity||0)===1?'':'s'}</span> <button class="mini-btn delete" onclick="removeInventoryLot('${l.id}')">Eliminar</button></div></div>`).join(''):'<div class="empty" style="padding:18px 0">No hay lotes registrados.</div>';
 }
-function inventoryStatus(msg,error=false){const s=document.getElementById('inventoryStatus');s.textContent=msg;s.style.background=error?'var(--red-soft)':'var(--green-soft)';s.style.color=error?'#a64c4c':'#4d7c61';s.classList.add('show');setTimeout(()=>s.classList.remove('show'),3000)}
-function clearInventoryForm(){document.getElementById('inventoryId').value='';document.getElementById('inventoryName').value='';document.getElementById('inventoryType').value='medication';document.getElementById('inventoryQuantity').value='';document.getElementById('inventoryUnit').value='';document.getElementById('inventoryFormTitle').textContent='Agregar al inventario';document.getElementById('inventorySaveBtn').textContent='Agregar al inventario'}
+function inventoryStatus(msg,error=false){const s=document.getElementById('inventoryStatus');s.textContent=msg;s.style.background=error?'var(--red-soft)':'var(--green-soft)';s.style.color=error?'#a64c4c':'#4d7c61';s.classList.add('show');setTimeout(()=>s.classList.remove('show'),3500)}
+function clearInventoryForm(){const i=inventoryPrimary();document.getElementById('inventoryId').value=i?.id||'';document.getElementById('inventoryName').value=i?.name||'Somatropina';document.getElementById('inventoryBrand').value=i?.brand||'';document.getElementById('inventoryStrength').value=i?.strength??'';document.getElementById('inventoryStrengthUnit').value=i?.strengthUnit||'mg';document.getElementById('inventoryDailyDose').value=i?.dailyDose??'';document.getElementById('inventoryFormTitle').textContent='Configuración del medicamento';document.getElementById('inventorySaveBtn').textContent='Guardar configuración';document.getElementById('inventoryLotExpiration').value=''}
 function saveInventoryItem(){
-  const id=document.getElementById('inventoryId').value,name=document.getElementById('inventoryName').value.trim(),quantity=Number(document.getElementById('inventoryQuantity').value),unit=document.getElementById('inventoryUnit').value.trim()||'unidades',type=document.getElementById('inventoryType').value;
-  if(!name){inventoryStatus('Escribe el nombre del medicamento o vacuna.',true);return}
-  if(!Number.isFinite(quantity)||quantity<0){inventoryStatus('La cantidad debe ser un número igual o mayor que 0.',true);return}
-  if(id){const item=inventory.find(i=>i.id===id);if(item)Object.assign(item,{name,type,quantity,unit});inventoryStatus('Inventario actualizado.')}else{inventory.push({id:inventoryUid(),name,type,quantity,unit});inventoryStatus('Artículo agregado al inventario.')}
-  persistInventory();clearInventoryForm();renderInventory();renderInventorySummary();
+  const id=document.getElementById('inventoryId').value||inventoryPrimary()?.id||'',name=document.getElementById('inventoryName').value.trim()||'Somatropina',brand=document.getElementById('inventoryBrand').value.trim(),strength=Number(document.getElementById('inventoryStrength').value),strengthUnit=document.getElementById('inventoryStrengthUnit').value,dailyDose=Number(document.getElementById('inventoryDailyDose').value);
+  if(!Number.isFinite(strength)||strength<=0){inventoryStatus('Indica el contenido por cartucho o pluma.',true);return}if(!Number.isFinite(dailyDose)||dailyDose<=0){inventoryStatus('Indica la dosis diaria prescrita.',true);return}
+  let item=id?inventory.find(x=>x.id===id):null;if(!item){item={id:inventoryUid(),name:'Somatropina',type:'medication',quantity:0,unit:'cartuchos',brand:'',strength:0,strengthUnit:'mg',dailyDose:0,dailyDoseUnit:'mg',activeRemaining:0,unopenedStock:0,openedDate:'',stabilityDays:28,lots:[]};inventory=[item,...inventory.filter(x=>x.type!=='medication')]}
+  Object.assign(item,{name,brand,strength,strengthUnit,dailyDose,dailyDoseUnit:strengthUnit,unit:'cartuchos'});if(!Array.isArray(item.lots))item.lots=[];item.unopenedStock=item.lots.reduce((sum,l)=>sum+Number(l.quantity||0),0);item.quantity=item.unopenedStock;persistInventory();clearInventoryForm();renderInventory();renderInventorySummary();inventoryStatus('Configuración guardada y conectada con Registro.')
 }
-function editInventoryItem(id){const i=inventory.find(x=>x.id===id);if(!i)return;document.getElementById('inventoryId').value=i.id;document.getElementById('inventoryName').value=i.name;document.getElementById('inventoryType').value=i.type;document.getElementById('inventoryQuantity').value=i.quantity;document.getElementById('inventoryUnit').value=i.unit;document.getElementById('inventoryFormTitle').textContent='Editar inventario';document.getElementById('inventorySaveBtn').textContent='Guardar cambios'}
-function deleteInventoryItem(id){const i=inventory.find(x=>x.id===id);if(!i)return;if(!confirm(`¿Eliminar ${i.name} del inventario?`))return;inventory=inventory.filter(x=>x.id!==id);persistInventory();renderInventory();renderInventorySummary();inventoryStatus('Artículo eliminado del inventario.')}
-function findInventoryByName(name){const n=String(name||'').trim().toLocaleLowerCase();return inventory.find(i=>i.name.toLocaleLowerCase()===n)}
-function consumeInventoryForRecord(name){const i=findInventoryByName(name);if(!i)return null;if(i.quantity>0)i.quantity-=1;persistInventory();return i}
-function restoreInventoryForRecord(name){const i=findInventoryByName(name);if(!i)return null;i.quantity+=1;persistInventory();return i}
+function adjustUnopenedStock(delta){const i=inventoryPrimary();if(!i){inventoryStatus('Primero configura la somatropina.',true);return}if(delta>0){addInventoryLot(true);return}const lots=[...(i.lots||[])].sort((a,b)=>(a.expiration||'9999').localeCompare(b.expiration||'9999')),lot=lots.find(l=>Number(l.quantity||0)>0);if(!lot){inventoryStatus('No hay cartuchos sellados para retirar.',true);return}lot.quantity=Math.max(0,Number(lot.quantity)-1);i.unopenedStock=i.lots.reduce((sum,l)=>sum+Number(l.quantity||0),0);i.quantity=i.unopenedStock;persistInventory();renderInventory();renderInventorySummary()}
+function addInventoryLot(skipPrompt=false){const i=inventoryPrimary();if(!i){inventoryStatus('Primero guarda la configuración del medicamento.',true);return}const input=document.getElementById('inventoryLotExpiration'),expiration=input.value||'';if(!skipPrompt&&!expiration){inventoryStatus('Añade la caducidad del cartucho o lote sellado.',true);return}const lot={id:inventoryUid(),quantity:1,expiration};i.lots=Array.isArray(i.lots)?i.lots:[];i.lots.push(lot);i.unopenedStock=i.lots.reduce((sum,l)=>sum+Number(l.quantity||0),0);i.quantity=i.unopenedStock;persistInventory();input.value='';renderInventory();renderInventorySummary();inventoryStatus('Cartucho sellado añadido al stock.')}
+function removeInventoryLot(id){const i=inventoryPrimary();if(!i)return;const lot=i.lots?.find(l=>l.id===id);if(!lot)return;if(!confirm('¿Eliminar este cartucho/lote del inventario?'))return;i.lots=i.lots.filter(l=>l.id!==id);i.unopenedStock=i.lots.reduce((sum,l)=>sum+Number(l.quantity||0),0);i.quantity=i.unopenedStock;persistInventory();renderInventory();renderInventorySummary()}
+function openNextInventoryPen(){const i=inventoryPrimary();if(!i)return false;const lots=[...(i.lots||[])].sort((a,b)=>(a.expiration||'9999').localeCompare(b.expiration||'9999')),lot=lots.find(l=>Number(l.quantity||0)>0);if(!lot)return false;lot.quantity-=1;i.unopenedStock=i.lots.reduce((sum,l)=>sum+Number(l.quantity||0),0);i.quantity=i.unopenedStock;i.activeRemaining=Number(i.strength||0);i.openedDate=iso(currentDate);persistInventory();return true}
+function findInventoryByName(name){const n=String(name||'').trim().toLocaleLowerCase();return inventory.find(i=>i.name.toLocaleLowerCase()===n)||inventoryPrimary()}
+function consumeInventoryForRecord(name,doseText){const i=findInventoryByName(name);if(!i)return {ok:true,item:null};const dose=parseDoseValue(doseText)?.value||Number(i.dailyDose||0);if(!Number.isFinite(dose)||dose<=0)return {ok:false,message:'No se pudo determinar la dosis para descontar del inventario.'};if(!Number(i.strength)||i.strength<=0)return {ok:true,item:i};if(Number(i.activeRemaining||0)<dose){if(Number(i.activeRemaining||0)>0)return {ok:false,message:`El cartucho activo solo tiene ${Number(i.activeRemaining).toLocaleString('es-MX',{maximumFractionDigits:2})} ${i.strengthUnit}. Abre el siguiente cartucho o verifica la dosis antes de guardar.`};if(!openNextInventoryPen())return {ok:false,message:'No hay cartuchos sellados disponibles para iniciar el siguiente cartucho.'}}i.activeRemaining=Math.max(0,Number(i.activeRemaining)-dose);persistInventory();return {ok:true,item:i,dose}}
+function restoreInventoryForRecord(name,doseText){const i=findInventoryByName(name);if(!i)return null;const dose=parseDoseValue(doseText)?.value||Number(i.dailyDose||0);if(Number.isFinite(dose)&&dose>0){i.activeRemaining=Number(i.activeRemaining||0)+dose;if(i.strength&&i.activeRemaining>i.strength)i.activeRemaining=i.strength}persistInventory();return i}
+function normalizeInventoryItem(i){if(!i||!String(i.name||'').trim())return null;const strength=Number(i.strength||0),dailyDose=Number(i.dailyDose||0),lots=Array.isArray(i.lots)?i.lots.map(l=>({id:l.id||inventoryUid(),quantity:Math.max(0,Number(l.quantity)||0),expiration:l.expiration||''})):[];const legacyQuantity=Math.max(0,Number(i.unopenedStock??i.quantity)||0);if(!lots.length&&legacyQuantity>0)lots.push({id:inventoryUid(),quantity:legacyQuantity,expiration:i.unopenedExpirationDate||''});const unopenedStock=lots.reduce((sum,l)=>sum+Number(l.quantity||0),0);return {id:i.id||inventoryUid(),name:String(i.name).trim(),type:i.type||'medication',quantity:unopenedStock,unit:'cartuchos',brand:String(i.brand||'').trim(),strength,strengthUnit:(i.strengthUnit||'mg').toUpperCase(),dailyDose,dailyDoseUnit:(i.dailyDoseUnit||i.strengthUnit||'mg').toUpperCase(),activeRemaining:Math.max(0,Number(i.activeRemaining)||0),openedDate:i.openedDate||'',stabilityDays:Math.max(0,Number(i.stabilityDays)||28),unopenedStock,lots}}
+function persistInventory(){localStorage.setItem('diegoMedicineInventory',JSON.stringify(inventory))}
 function uid(){return 'r_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7)}
 function normalizeRecord(r){
   if(!r || !r.date)return null;
   const site=r.site||zones.find(z=>zoneNames[z]===r.siteLabel)||'';
   const siteLabel=zoneNames[site]||translateSiteLabel(r.siteLabel)||r.siteLabel||'';
-  return {id:r.id||uid(),date:String(r.date).slice(0,10),time:r.time||'20:00',type:r.type||'medication',vaccine:r.vaccine||r.name||'',dose:r.dose||'',site,siteLabel,notes:r.notes||''};
+  return {id:r.id||uid(),date:String(r.date).slice(0,10),time:r.time||'20:30',type:r.type||'medication',vaccine:r.vaccine||r.name||'',dose:r.dose||'',site,siteLabel,notes:r.notes||''};
 }
 function persist(){localStorage.setItem('diegoHealthRecords',JSON.stringify(records))}
 function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
@@ -843,21 +1066,24 @@ function loadRecordForDate(){
   updateRecentSites();
 }
 function loadIntoForm(r){
-  editingId=r.id;document.getElementById('time').value=r.time||'20:00';document.getElementById('type').value=r.type||'medication';document.getElementById('vaccine').value=r.vaccine||'';document.getElementById('dose').value=r.dose||'';document.getElementById('notes').value=r.notes||'';
+  editingId=r.id;document.getElementById('time').value=r.time||'20:30';document.getElementById('type').value=r.type||'medication';document.getElementById('vaccine').value=r.vaccine||'';document.getElementById('dose').value=r.dose||'';document.getElementById('notes').value=r.notes||'';
   selectedZone=r.site||null;document.getElementById('selectedSite').textContent=r.siteLabel||zoneNames[r.site]||'Ninguno seleccionado';
   zones.forEach(z=>document.getElementById(z)?.classList.remove('selected'));if(r.site)document.getElementById(r.site)?.classList.add('selected');
   document.getElementById('saveBtn').textContent='Guardar registro';
 }
 function clearForm(resetButton=true){
-  if(resetButton)editingId=null;document.getElementById('time').value='20:00';document.getElementById('type').value='medication';document.getElementById('vaccine').value='';document.getElementById('dose').value='';document.getElementById('notes').value='';
-  selectedZone=null;zones.forEach(z=>document.getElementById(z)?.classList.remove('selected'));document.getElementById('selectedSite').textContent='Ninguno seleccionado';
+  if(resetButton)editingId=null;document.getElementById('time').value='20:30';document.getElementById('type').value='medication';
+  const inv=inventoryPrimary();document.getElementById('vaccine').value=inv?.name||'';document.getElementById('dose').value=inv?.dailyDose?`${inv.dailyDose} ${inv.dailyDoseUnit||inv.strengthUnit||'mg'}`:'';
+  document.getElementById('notes').value='';selectedZone=null;zones.forEach(z=>document.getElementById(z)?.classList.remove('selected'));document.getElementById('selectedSite').textContent='Ninguno seleccionado';
   if(resetButton)document.getElementById('saveBtn').textContent='Guardar registro';
 }
 function saveRecord(){
   if(!selectedZone){flash('Por favor, selecciona un sitio de inyección primero.',true);return}
-  const entry={id:editingId||uid(),date:iso(currentDate),time:document.getElementById('time').value||'20:00',type:document.getElementById('type').value,vaccine:document.getElementById('vaccine').value.trim(),dose:document.getElementById('dose').value.trim(),site:selectedZone,siteLabel:zoneNames[selectedZone],notes:document.getElementById('notes').value.trim()};
-  if(editingId){records=records.map(r=>r.id===editingId?entry:r);}else{records.push(entry);const consumed=consumeInventoryForRecord(entry.vaccine);if(consumed&&consumed.quantity===0)flash(`Registro guardado. ${consumed.name} se quedó en 0 ${consumed.unit}.`);}
-  records.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));persist();editingId=null;document.getElementById('saveBtn').textContent='Guardar registro';renderDate();renderHistory();renderInventorySummary();if(!document.getElementById('status').classList.contains('show'))flash('Registro guardado correctamente.');
+  const entry={id:editingId||uid(),date:iso(currentDate),time:document.getElementById('time').value||'20:30',type:document.getElementById('type').value,vaccine:document.getElementById('vaccine').value.trim(),dose:document.getElementById('dose').value.trim(),site:selectedZone,siteLabel:zoneNames[selectedZone],notes:document.getElementById('notes').value.trim()};
+  if(!entry.vaccine){flash('Selecciona un medicamento del inventario.',true);return}
+  if(editingId){records=records.map(r=>r.id===editingId?entry:r);}
+  else{const consumed=consumeInventoryForRecord(entry.vaccine,entry.dose);if(!consumed.ok){flash(consumed.message,true);return}records.push(entry);}
+  records.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));persist();editingId=null;document.getElementById('saveBtn').textContent='Guardar registro';renderDate();renderHistory();renderInventory();renderInventorySummary();if(!document.getElementById('status').classList.contains('show'))flash('Registro guardado correctamente.');
 }
 function flash(msg,error=false){const s=document.getElementById('status');s.textContent=msg;s.style.background=error?'var(--red-soft)':'var(--green-soft)';s.style.color=error?'#a64c4c':'#4d7c61';s.classList.add('show');setTimeout(()=>s.classList.remove('show'),3000)}
 function toggleHistory(){const p=document.getElementById('historyPanel');p.classList.toggle('open');if(p.classList.contains('open')){renderHistory();setTimeout(()=>p.scrollIntoView({behavior:'smooth',block:'start'}),20)}}
@@ -871,7 +1097,7 @@ function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 function deleteRecord(id){
   const r=records.find(x=>x.id===id);if(!r)return;
   if(!confirm(`¿Eliminar el registro de ${r.type==='vaccine'?'vacuna':'medicación'} del ${fmtDate(dateFrom(r.date))}?`))return;
-  records=records.filter(x=>x.id!==id);persist();restoreInventoryForRecord(r.vaccine);renderDate();renderHistory();renderInventorySummary();flash('Registro eliminado. La unidad consumida fue devuelta al inventario si existía coincidencia.');
+  records=records.filter(x=>x.id!==id);persist();restoreInventoryForRecord(r.vaccine,r.dose);renderDate();renderHistory();renderInventorySummary();flash('Registro eliminado. La unidad consumida fue devuelta al inventario si existía coincidencia.');
 }
 function editRecord(id){
   const r=records.find(x=>x.id===id);if(!r)return;editingId=id;
@@ -901,7 +1127,7 @@ function exportExcel(){
   if(typeof XLSX==='undefined'){alert('No se pudo cargar el módulo de Excel. Revisa tu conexión a Internet e inténtalo de nuevo.');return}
   let rows=[],filename='',sheetName='';
   if(currentTab==='inventario'){
-    rows=[['Medicamento / vacuna','Tipo','Cantidad','Unidad'],...inventory.map(i=>[i.name,inventoryTypeLabel(i.type),Number(i.quantity),i.unit])];
+    rows=[['Medicamento','Marca / presentación','Contenido por cartucho','Unidad','Stock sellado','Cartucho activo restante','Apertura / reconstitución','Revisión tras apertura','Dosis diaria','Días estimados','Caducidad de lotes'],...inventory.map(i=>[i.name,i.brand||'',Number(i.strength||0),i.strengthUnit||'mg',Number(i.unopenedStock||0),Number(i.activeRemaining||0),i.openedDate||'',inventoryExpiryStatus(i)?.expiry||'',Number(i.dailyDose||0),inventoryDaysRemaining(i)??'',(i.lots||[]).map(l=>`${l.quantity} x ${l.expiration||'sin fecha'}`).join(' | ')])];
     filename='diego-inventario.xlsx';sheetName='Inventario';
   }else if(currentTab==='medidas'){
     if(typeof window.exportMedidasExcelAdvanced==='function'){window.exportMedidasExcelAdvanced();return}
@@ -959,7 +1185,7 @@ async function parseImport(file){
     const rows=parseCSV(text);if(!rows.length)throw new Error('El archivo CSV no contiene registros.');
     const headers=rows[0].map(x=>x.trim().toLowerCase());const find=(...names)=>{for(const n of names){const i=headers.indexOf(n);if(i>=0)return i}return -1};
     const idx={date:find('date','fecha'),time:find('time','hora'),type:find('type','tipo'),vaccine:find('vaccine / medication','vaccine','medication','vacuna','medicamento'),dose:find('dose','dosis'),site:find('injection site','site','sitio'),notes:find('notes','note','notas')};
-    incoming=rows.slice(1).map(row=>({date:row[idx.date],time:idx.time>=0?row[idx.time]:'20:00',type:idx.type>=0?row[idx.type]:'medication',vaccine:idx.vaccine>=0?row[idx.vaccine]:'',dose:idx.dose>=0?row[idx.dose]:'',siteLabel:idx.site>=0?row[idx.site]:'',notes:idx.notes>=0?row[idx.notes]:''}));
+    incoming=rows.slice(1).map(row=>({date:row[idx.date],time:idx.time>=0?row[idx.time]:'20:30',type:idx.type>=0?row[idx.type]:'medication',vaccine:idx.vaccine>=0?row[idx.vaccine]:'',dose:idx.dose>=0?row[idx.dose]:'',siteLabel:idx.site>=0?row[idx.site]:'',notes:idx.notes>=0?row[idx.notes]:''}));
   }
   const valid=[],invalid=[];
   incoming.forEach((r,i)=>{const n=normalizeRecord(r);if(n&&/^\d{4}-\d{2}-\d{2}$/.test(n.date)&&n.time)valid.push(n);else invalid.push(i+1)});
@@ -1477,6 +1703,445 @@ if('serviceWorker' in navigator){
   };
 
   console.log('[growth] tracker loaded v2');
+})();
+</script>
+<script>
+/* ===== Sleep tracker (Sueño) — added on top of the existing page, fully separate storage ===== */
+(function(){
+
+  let sleepRecords = JSON.parse(localStorage.getItem('diegoSleepRecords') || '[]').filter(r => r && r.id && r.date && r.bedtime && r.wake && (r.kid === 'kid1' || r.kid === 'kid2'));
+  let sleepKids = Object.assign({ kid1: { name: 'Niño 1', color: '#5468d6' }, kid2: { name: 'Niño 2', color: '#e0729a' } }, JSON.parse(localStorage.getItem('diegoSleepKids') || 'null') || {});
+  let currentSleepKid = (localStorage.getItem('diegoSleepCurrentKid') === 'kid2') ? 'kid2' : 'kid1';
+
+  function persistSleep(){ localStorage.setItem('diegoSleepRecords', JSON.stringify(sleepRecords)); }
+  function persistSleepKids(){ localStorage.setItem('diegoSleepKids', JSON.stringify(sleepKids)); }
+  function sleepUid(){ return 's_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7); }
+  function sortedSleepRecords(kid){ return sleepRecords.filter(r => !kid || r.kid === kid).sort((a,b) => (b.date+b.bedtime).localeCompare(a.date+a.bedtime)); }
+
+  function durationMinutes(bedtime, wake){
+    const [bh,bm] = bedtime.split(':').map(Number), [wh,wm] = wake.split(':').map(Number);
+    let bed = bh*60+bm, wk = wh*60+wm;
+    if (wk <= bed) wk += 1440;
+    return wk - bed;
+  }
+  function fmtDuration(mins){
+    const h = Math.floor(mins/60), m = mins % 60;
+    return m === 0 ? h + 'h' : h + 'h ' + m + 'min';
+  }
+  function moonForDuration(mins){
+    const h = mins/60;
+    if (h >= 10) return '🌕';
+    if (h >= 8) return '🌖';
+    if (h >= 6) return '🌗';
+    if (h >= 4) return '🌘';
+    return '🌑';
+  }
+  function sleepInitial(kid){ return (sleepKids[kid].name.trim()[0] || '?').toUpperCase(); }
+
+  window.selectSleepKid = function(kid){
+    currentSleepKid = kid;
+    localStorage.setItem('diegoSleepCurrentKid', kid);
+    clearSleepForm();
+    renderSleepKidSwitch(); renderSleepList(); renderSleepStats();
+  };
+
+  window.renameSleepKid = function(kid){
+    const next = prompt('Nombre para este niño:', sleepKids[kid].name);
+    if (next === null) return;
+    const trimmed = next.trim();
+    if (!trimmed) return;
+    sleepKids[kid].name = trimmed;
+    persistSleepKids();
+    renderSleepKidSwitch(); renderSleepList(); renderSleepStats();
+  };
+
+  window.renderSleepKidSwitch = function(){
+    const el = document.getElementById('sleepKidSwitch'); if (!el) return;
+    el.innerHTML = ['kid1','kid2'].map(kid => {
+      const active = kid === currentSleepKid;
+      return '<div class="sleep-kid-pill' + (active?' active':'') + '">' +
+        '<button class="sleep-kid-select" onclick="selectSleepKid(\'' + kid + '\')"><span class="kid-avatar" style="background:' + sleepKids[kid].color + '">' + esc(sleepInitial(kid)) + '</span>' + esc(sleepKids[kid].name) + '</button>' +
+        '<button class="sleep-kid-rename" onclick="renameSleepKid(\'' + kid + '\')" title="Renombrar">✏️</button></div>';
+    }).join('');
+  };
+
+  window.updateSleepDurationPreview = function(){
+    const bedtime = document.getElementById('sleepBedtime').value, wake = document.getElementById('sleepWake').value, prev = document.getElementById('sleepDurationPreview');
+    if (!prev) return;
+    if (bedtime && wake) {
+      const mins = durationMinutes(bedtime, wake);
+      prev.innerHTML = moonForDuration(mins) + ' Duración estimada: <b>' + fmtDuration(mins) + '</b>';
+    } else {
+      prev.textContent = 'Completa ambas horas para ver la duración.';
+    }
+  };
+
+  function sleepStatus(msg, error){
+    const s = document.getElementById('sleepStatus'); if (!s) return;
+    s.textContent = msg; s.style.background = error ? 'var(--red-soft)' : 'var(--green-soft)'; s.style.color = error ? '#a64c4c' : '#4d7c61';
+    s.classList.add('show'); setTimeout(() => s.classList.remove('show'), 3000);
+  }
+
+  window.clearSleepForm = function(){
+    document.getElementById('sleepRecordId').value = '';
+    document.getElementById('sleepRecordKid').value = currentSleepKid;
+    document.getElementById('sleepDate').value = iso(new Date());
+    document.getElementById('sleepBedtime').value = '';
+    document.getElementById('sleepWake').value = '';
+    document.getElementById('sleepNotes').value = '';
+    document.getElementById('sleepFormTitle').textContent = 'Agregar registro de sueño';
+    document.getElementById('sleepSaveBtn').textContent = 'Guardar registro';
+    updateSleepDurationPreview();
+  };
+
+  window.saveSleepRecord = function(){
+    const id = document.getElementById('sleepRecordId').value;
+    const kid = document.getElementById('sleepRecordKid').value || currentSleepKid;
+    const date = document.getElementById('sleepDate').value;
+    const bedtime = document.getElementById('sleepBedtime').value;
+    const wake = document.getElementById('sleepWake').value;
+    const notes = document.getElementById('sleepNotes').value.trim();
+    if (!date) { sleepStatus('Selecciona una fecha.', true); return; }
+    if (!bedtime || !wake) { sleepStatus('Indica la hora de dormir y de despertar.', true); return; }
+    if (id) {
+      const item = sleepRecords.find(r => r.id === id);
+      if (item) Object.assign(item, { date, bedtime, wake, notes, kid });
+      sleepStatus('Registro actualizado.');
+    } else {
+      sleepRecords.push({ id: sleepUid(), kid, date, bedtime, wake, notes });
+      sleepStatus('Registro de sueño guardado.');
+    }
+    persistSleep();
+    clearSleepForm();
+    renderSleepList(); renderSleepStats();
+  };
+
+  window.editSleepRecord = function(id){
+    const r = sleepRecords.find(x => x.id === id); if (!r) return;
+    if (r.kid !== currentSleepKid) { currentSleepKid = r.kid; localStorage.setItem('diegoSleepCurrentKid', r.kid); renderSleepKidSwitch(); renderSleepList(); renderSleepStats(); }
+    document.getElementById('sleepRecordId').value = r.id;
+    document.getElementById('sleepRecordKid').value = r.kid;
+    document.getElementById('sleepDate').value = r.date;
+    document.getElementById('sleepBedtime').value = r.bedtime;
+    document.getElementById('sleepWake').value = r.wake;
+    document.getElementById('sleepNotes').value = r.notes || '';
+    document.getElementById('sleepFormTitle').textContent = 'Editar registro de sueño';
+    document.getElementById('sleepSaveBtn').textContent = 'Guardar cambios';
+    updateSleepDurationPreview();
+  };
+
+  window.deleteSleepRecord = function(id){
+    const r = sleepRecords.find(x => x.id === id); if (!r) return;
+    if (!confirm('¿Eliminar este registro de sueño?')) return;
+    sleepRecords = sleepRecords.filter(x => x.id !== id);
+    persistSleep();
+    renderSleepList(); renderSleepStats();
+    sleepStatus('Registro eliminado.');
+  };
+
+  window.renderSleepList = function(){
+    const list = document.getElementById('sleepList'); if (!list) return;
+    const sorted = sortedSleepRecords(currentSleepKid);
+    if (!sorted.length) { list.innerHTML = '<div class="empty">Aún no hay registros de sueño para ' + esc(sleepKids[currentSleepKid].name) + '.</div>'; return; }
+    list.innerHTML = sorted.map(r => {
+      const mins = durationMinutes(r.bedtime, r.wake);
+      return '<div class="sleep-item">' +
+        '<div class="sleep-item-icon" style="background:' + sleepKids[r.kid].color + '22;color:' + sleepKids[r.kid].color + '">' + moonForDuration(mins) + '</div>' +
+        '<div class="sleep-item-main"><strong>' + esc(fmtDate(dateFrom(r.date))) + '</strong><small>' + esc(r.bedtime) + ' → ' + esc(r.wake) + (r.notes ? ' · ' + esc(r.notes) : '') + '</small></div>' +
+        '<div class="sleep-item-duration"><b>' + esc(fmtDuration(mins)) + '</b><span>duración</span></div>' +
+        '<div class="sleep-item-actions"><button class="mini-btn" onclick="editSleepRecord(\'' + r.id + '\')">Editar</button><button class="mini-btn delete" onclick="deleteSleepRecord(\'' + r.id + '\')">Eliminar</button></div>' +
+        '</div>';
+    }).join('');
+  };
+
+  window.renderSleepStats = function(){
+    const card = document.getElementById('sleepStatsCard'); if (!card) return;
+    const sorted = sortedSleepRecords(currentSleepKid);
+    const name = esc(sleepKids[currentSleepKid].name);
+    if (!sorted.length) {
+      card.innerHTML = '<div class="sleep-stats-inner"><div class="sleep-stats-title">' + name + ' · Resumen de sueño</div><div class="sleep-stats-empty">Aún no hay registros. Agrega la primera noche de sueño.</div></div>';
+      return;
+    }
+    const last = sorted[0], lastMins = durationMinutes(last.bedtime, last.wake);
+    const recent = sorted.slice(0, 7);
+    const avgMins = Math.round(recent.reduce((s,r) => s + durationMinutes(r.bedtime, r.wake), 0) / recent.length);
+    const chrono = [...recent].reverse();
+    const maxMins = Math.max(...chrono.map(r => durationMinutes(r.bedtime, r.wake)), 60);
+    const bars = chrono.map(r => {
+      const mins = durationMinutes(r.bedtime, r.wake);
+      const pct = Math.max(6, Math.round(mins / maxMins * 100));
+      const label = dateFrom(r.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+      return '<div class="sleep-week-bar" title="' + esc(fmtDuration(mins)) + '"><div class="sleep-week-bar-fill" style="height:' + pct + '%"></div><div class="sleep-week-bar-label">' + esc(label) + '</div></div>';
+    }).join('');
+    card.innerHTML = '<div class="sleep-stats-inner">' +
+      '<div class="sleep-stats-title">' + name + ' · Resumen de sueño</div>' +
+      '<div class="sleep-stats-main"><span class="moon">' + moonForDuration(lastMins) + '</span><b>' + esc(fmtDuration(lastMins)) + '</b><span>última noche · ' + esc(fmtDate(dateFrom(last.date))) + '</span></div>' +
+      '<div class="sleep-stats-sub">Promedio de los últimos ' + recent.length + ' registros: <b>' + esc(fmtDuration(avgMins)) + '</b></div>' +
+      '<div class="sleep-week-bars">' + bars + '</div>' +
+      '</div>';
+  };
+
+  function sleepCsvRows(){
+    return [['Niño','Fecha','Hora de dormir','Hora de despertar','Duración','Notas'],
+      ...sortedSleepRecords().map(r => [sleepKids[r.kid].name, r.date, r.bedtime, r.wake, fmtDuration(durationMinutes(r.bedtime, r.wake)), r.notes || ''])];
+  }
+  function buildSleepPrintReport(){
+    const sorted = sortedSleepRecords();
+    document.getElementById('printReport').innerHTML = '<div class="print-header"><div class="print-title">Vacunas Diego</div><div class="print-meta">Registro de sueño<br>Generado el ' + new Date().toLocaleString() + '</div></div>' +
+      '<div class="print-summary"><div class="print-box"><b>' + sorted.length + '</b><span>Registros totales</span></div></div>' +
+      '<div class="print-day"><div class="print-day-head">Historial de sueño</div>' +
+      (sorted.length ? sorted.map(r => '<div class="print-record"><strong>' + esc(sleepKids[r.kid].name) + '</strong><div>' + esc(fmtDate(dateFrom(r.date))) + ' · ' + esc(r.bedtime) + '–' + esc(r.wake) + ' (' + esc(fmtDuration(durationMinutes(r.bedtime, r.wake))) + ')' + (r.notes ? '<div class="print-note">' + esc(r.notes) + '</div>' : '') + '</div></div>').join('') : '<div class="empty">No hay registros de sueño.</div>') +
+      '</div><div class="print-footer">Registro personal de sueño de la familia, independiente del historial médico.</div>';
+  }
+
+  /* --- Extend tabs, export menu and labels to cover the new Sueño tab --- */
+  window.switchTab = function(tab){
+    currentTab = tab;
+    document.getElementById('panelRegistro').classList.toggle('active', tab === 'registro');
+    document.getElementById('panelInventario').classList.toggle('active', tab === 'inventario');
+    document.getElementById('panelMedidas').classList.toggle('active', tab === 'medidas');
+    document.getElementById('panelSueno').classList.toggle('active', tab === 'sueno');
+    document.getElementById('tabRegistro').classList.toggle('active', tab === 'registro');
+    document.getElementById('tabInventario').classList.toggle('active', tab === 'inventario');
+    document.getElementById('tabMedidas').classList.toggle('active', tab === 'medidas');
+    document.getElementById('tabSueno').classList.toggle('active', tab === 'sueno');
+    document.getElementById('importFileButton')?.classList.toggle('locked', tab !== 'registro');
+    document.getElementById('importFileButton')?.setAttribute('aria-disabled', tab !== 'registro');
+    document.getElementById('historyButton')?.classList.toggle('locked', tab !== 'registro');
+    document.getElementById('historyButton')?.setAttribute('aria-disabled', tab !== 'registro');
+    renderExportLabels();
+    if (tab === 'inventario') renderInventory();
+    else if (tab === 'medidas') renderMeasurements();
+    else if (tab === 'sueno') { renderSleepKidSwitch(); renderSleepList(); renderSleepStats(); }
+    else { renderInventorySummary(); renderMeasurementSummary(); }
+  };
+
+  window.renderExportLabels = function(){
+    const inv = currentTab === 'inventario', med = currentTab === 'medidas', sleep = currentTab === 'sueno';
+    document.getElementById('exportCsvBtn').textContent = inv ? 'Exportar inventario a CSV' : med ? 'Exportar peso y talla a CSV' : sleep ? 'Exportar sueño a CSV' : 'Exportar historial a CSV';
+    document.getElementById('exportJsonBtn').textContent = inv ? 'Exportar inventario a JSON' : med ? 'Exportar peso y talla a JSON' : sleep ? 'Exportar sueño a JSON' : 'Exportar historial a JSON';
+    document.getElementById('exportPdfBtn').textContent = inv ? 'Exportar inventario a PDF' : med ? 'Exportar peso y talla a PDF' : sleep ? 'Exportar sueño a PDF' : 'Exportar historial a PDF';
+  };
+
+  const _exportJSON = window.exportJSON, _exportCSV = window.exportCSV, _exportExcel = window.exportExcel, _exportPDF = window.exportPDF;
+  window.exportJSON = function(){
+    if (currentTab === 'sueno') { download('diego-sueno.json', JSON.stringify({ exportedAt: new Date().toISOString(), kids: sleepKids, records: sleepRecords }, null, 2), 'application/json'); return; }
+    _exportJSON();
+  };
+  window.exportCSV = function(){
+    if (currentTab === 'sueno') { download('diego-sueno.csv', csvString(sleepCsvRows()), 'text/csv'); return; }
+    _exportCSV();
+  };
+  window.exportExcel = function(){
+    if (currentTab === 'sueno') {
+      if (typeof XLSX === 'undefined') { alert('No se pudo cargar el módulo de Excel. Revisa tu conexión a Internet e inténtalo de nuevo.'); return; }
+      const rows = sleepCsvRows();
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols'] = rows[0].map((_,i) => ({ wch: Math.min(40, Math.max(12, ...rows.map(r => String(r[i] ?? '').length + 2))) }));
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Sueño');
+      XLSX.writeFile(wb, 'diego-sueno.xlsx');
+      document.getElementById('exportOptions').classList.remove('open');
+      return;
+    }
+    _exportExcel();
+  };
+  window.exportPDF = function(){
+    if (currentTab === 'sueno') { document.getElementById('exportOptions').classList.remove('open'); buildSleepPrintReport(); window.print(); return; }
+    _exportPDF();
+  };
+
+  renderSleepKidSwitch();
+  clearSleepForm();
+  renderSleepList();
+  renderSleepStats();
+
+  console.log('[sleep] tracker loaded v1');
+})();
+</script>
+<script>
+/* ===== Botiquín (simple multi-medicine inventory) + link Registro to Inventario ===== */
+(function(){
+
+  let simpleMeds = JSON.parse(localStorage.getItem('diegoSimpleMeds') || '[]').map(normalizeSimpleMed).filter(Boolean);
+
+  function normalizeSimpleMed(i){
+    if (!i || !String(i.name||'').trim()) return null;
+    return { id: i.id || simpleMedUid(), name: String(i.name).trim(), unit: String(i.unit||'unidades').trim() || 'unidades', quantity: Math.max(0, Number(i.quantity)||0), notes: String(i.notes||'').trim() };
+  }
+  function simpleMedUid(){ return 'm_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7); }
+  function persistSimpleMeds(){ localStorage.setItem('diegoSimpleMeds', JSON.stringify(simpleMeds)); }
+  function findSimpleMedByName(name){ const n = String(name||'').trim().toLocaleLowerCase(); return simpleMeds.find(m => m.name.toLocaleLowerCase() === n) || null; }
+  function parseSimpleQty(doseText){ const m = String(doseText||'').match(/(\d+(?:\.\d+)?)/); const n = m ? Number(m[1]) : 1; return (Number.isFinite(n) && n > 0) ? n : 1; }
+
+  function simpleMedStatus(msg, error){
+    const s = document.getElementById('simpleMedStatus'); if (!s) return;
+    s.textContent = msg; s.style.background = error ? 'var(--red-soft)' : 'var(--green-soft)'; s.style.color = error ? '#a64c4c' : '#4d7c61';
+    s.classList.add('show'); setTimeout(() => s.classList.remove('show'), 3000);
+  }
+
+  window.clearSimpleMedForm = function(){
+    document.getElementById('simpleMedId').value = '';
+    document.getElementById('simpleMedName').value = '';
+    document.getElementById('simpleMedUnit').value = '';
+    document.getElementById('simpleMedQuantity').value = '';
+    document.getElementById('simpleMedNotes').value = '';
+    document.getElementById('simpleMedSaveBtn').textContent = 'Guardar medicamento';
+  };
+
+  window.saveSimpleMed = function(){
+    const id = document.getElementById('simpleMedId').value;
+    const name = document.getElementById('simpleMedName').value.trim();
+    const unit = document.getElementById('simpleMedUnit').value.trim() || 'unidades';
+    const quantity = Number(document.getElementById('simpleMedQuantity').value);
+    const notes = document.getElementById('simpleMedNotes').value.trim();
+    if (!name) { simpleMedStatus('Indica el nombre del medicamento.', true); return; }
+    if (!Number.isFinite(quantity) || quantity < 0) { simpleMedStatus('Indica una cantidad disponible válida.', true); return; }
+    if (id) {
+      const item = simpleMeds.find(m => m.id === id);
+      if (item) Object.assign(item, { name, unit, quantity, notes });
+      simpleMedStatus('Medicamento actualizado.');
+    } else {
+      if (findSimpleMedByName(name)) { simpleMedStatus('Ya existe un medicamento con ese nombre en el botiquín.', true); return; }
+      simpleMeds.push({ id: simpleMedUid(), name, unit, quantity, notes });
+      simpleMedStatus('Medicamento añadido al botiquín y conectado con Registro.');
+    }
+    persistSimpleMeds();
+    clearSimpleMedForm();
+    renderSimpleMedList();
+  };
+
+  window.editSimpleMed = function(id){
+    const m = simpleMeds.find(x => x.id === id); if (!m) return;
+    document.getElementById('simpleMedId').value = m.id;
+    document.getElementById('simpleMedName').value = m.name;
+    document.getElementById('simpleMedUnit').value = m.unit;
+    document.getElementById('simpleMedQuantity').value = m.quantity;
+    document.getElementById('simpleMedNotes').value = m.notes || '';
+    document.getElementById('simpleMedSaveBtn').textContent = 'Guardar cambios';
+  };
+
+  window.deleteSimpleMed = function(id){
+    const m = simpleMeds.find(x => x.id === id); if (!m) return;
+    if (!confirm('¿Eliminar "' + m.name + '" del botiquín?')) return;
+    simpleMeds = simpleMeds.filter(x => x.id !== id);
+    persistSimpleMeds();
+    renderSimpleMedList();
+    simpleMedStatus('Medicamento eliminado.');
+  };
+
+  window.renderSimpleMedList = function(){
+    const el = document.getElementById('simpleMedList'); if (!el) return;
+    if (!simpleMeds.length) { el.innerHTML = '<div class="empty">Aún no hay medicamentos en el botiquín. Agrega el primero arriba.</div>'; renderMedicineOptions(); return; }
+    el.innerHTML = simpleMeds.map(m => {
+      const low = m.quantity <= 0;
+      return '<div class="lot-item"><div><b>' + esc(m.name) + '</b><small>' + (m.notes ? esc(m.notes) : 'Sin notas') + '</small></div>' +
+        '<div><span class="lot-badge"' + (low ? ' style="background:var(--red-soft);color:#a64c4c"' : '') + '>' + esc(String(m.quantity)) + ' ' + esc(m.unit) + '</span> ' +
+        '<button class="mini-btn" onclick="editSimpleMed(\'' + m.id + '\')">Editar</button> <button class="mini-btn delete" onclick="deleteSimpleMed(\'' + m.id + '\')">Eliminar</button></div></div>';
+    }).join('');
+    renderMedicineOptions();
+  };
+
+  /* Build a list of currently active, in-stock items (cartridge + botiquín) available to log */
+  function activeStockItems(){
+    const items = [];
+    const cartridge = typeof inventoryPrimary === 'function' ? inventoryPrimary() : null;
+    if (cartridge?.name && typeof inventoryTotalAvailable === 'function' && inventoryTotalAvailable(cartridge) > 0) {
+      items.push({ ref: 'cartridge', name: cartridge.name, unit: cartridge.dailyDoseUnit || cartridge.strengthUnit || 'mg', doseAmount: Number(cartridge.dailyDose || 0), label: cartridge.name + (cartridge.dailyDose ? ' (' + cartridge.dailyDose + ' ' + (cartridge.dailyDoseUnit || cartridge.strengthUnit || 'mg') + '/día)' : '') });
+    }
+    simpleMeds.forEach(m => {
+      if (m.quantity > 0) items.push({ ref: 'med:' + m.id, name: m.name, unit: m.unit, doseAmount: 1, label: m.name + ' (' + m.quantity + ' ' + m.unit + ' disponibles)' });
+    });
+    return items;
+  }
+
+  window.renderMedicineOptions = function(){
+    const select = document.getElementById('vaccine'), hint = document.getElementById('vaccineStockHint'); if (!select) return;
+    const prevValue = select.value;
+    const items = activeStockItems();
+    let html = '<option value="">Selecciona un medicamento del inventario...</option>';
+    html += items.map(it => '<option value="' + esc(it.name) + '">' + esc(it.label) + '</option>').join('');
+    select.innerHTML = html;
+    if (items.some(it => it.name === prevValue)) select.value = prevValue;
+    if (hint) hint.textContent = items.length ? '' : 'No hay medicamentos con stock disponible. Añade uno en Inventario o Botiquín primero.';
+  };
+
+  window.renderDosePreview = function(){
+    const amount = document.getElementById('doseAmount').value, badge = document.getElementById('doseUnitBadge'), hidden = document.getElementById('dose');
+    const unit = badge ? badge.dataset.unit || '' : '';
+    hidden.value = (amount !== '' && unit) ? (amount + ' ' + unit) : '';
+  };
+
+  window.applyVaccineSelection = function(){
+    const select = document.getElementById('vaccine'); if (!select) return;
+    const name = select.value;
+    const badge = document.getElementById('doseUnitBadge'), amountInput = document.getElementById('doseAmount'), hint = document.getElementById('doseHint');
+    if (!name) { badge.textContent = '—'; badge.dataset.unit = ''; amountInput.value = ''; document.getElementById('dose').value = ''; if (hint) hint.textContent = ''; return; }
+    const items = activeStockItems();
+    const item = items.find(it => it.name === name);
+    if (!item) return;
+    badge.textContent = item.unit; badge.dataset.unit = item.unit;
+    amountInput.value = item.doseAmount || '';
+    if (hint) hint.textContent = item.ref === 'cartridge' ? 'Dosis prescrita rellenada automáticamente. Ajusta si aplicaste una cantidad distinta.' : 'Cantidad prellenada en ' + item.unit + '. Ajusta si usaste una cantidad distinta.';
+    renderDosePreview();
+  };
+
+  /* Auto-select the only active item on a fresh form load ("smart default") */
+  function applySmartDefaultSelection(){
+    const select = document.getElementById('vaccine'); if (!select) return;
+    const items = activeStockItems();
+    if (items.length === 1) { select.value = items[0].name; applyVaccineSelection(); }
+  }
+
+  const _clearForm = window.clearForm;
+  window.clearForm = function(resetButton){
+    _clearForm(resetButton);
+    renderMedicineOptions();
+    applySmartDefaultSelection();
+  };
+
+  const _loadIntoForm = window.loadIntoForm;
+  window.loadIntoForm = function(r){
+    _loadIntoForm(r);
+    renderMedicineOptions();
+    const select = document.getElementById('vaccine');
+    if (r?.vaccine && ![...select.options].some(o => o.value === r.vaccine)) {
+      select.insertAdjacentHTML('beforeend', '<option value="' + esc(r.vaccine) + '">' + esc(r.vaccine) + ' (registro histórico, sin stock activo)</option>');
+    }
+    select.value = r?.vaccine || '';
+    const badge = document.getElementById('doseUnitBadge'), amountInput = document.getElementById('doseAmount');
+    const parsed = String(r?.dose || '').match(/^\s*(\d+(?:\.\d+)?)\s*(.*)$/);
+    if (parsed) { amountInput.value = parsed[1]; badge.textContent = parsed[2] || '—'; badge.dataset.unit = parsed[2] || ''; }
+    else { amountInput.value = ''; badge.textContent = '—'; badge.dataset.unit = ''; }
+    document.getElementById('dose').value = r?.dose || '';
+  };
+
+  /* Wrap the existing cartridge consume/restore so simple botiquín items are checked first;
+     the amount deducted is always the exact number typed into Dosis, never a generic "1 unit". */
+  const _consumeInventoryForRecord = window.consumeInventoryForRecord;
+  window.consumeInventoryForRecord = function(name, doseText){
+    const med = findSimpleMedByName(name);
+    if (med) {
+      const qty = parseSimpleQty(doseText);
+      if (med.quantity < qty) return { ok: false, message: 'Solo quedan ' + med.quantity + ' ' + med.unit + ' de "' + med.name + '" en el botiquín.' };
+      med.quantity -= qty; persistSimpleMeds(); renderSimpleMedList(); renderMedicineOptions();
+      return { ok: true, item: med, dose: qty };
+    }
+    return _consumeInventoryForRecord(name, doseText);
+  };
+  const _restoreInventoryForRecord = window.restoreInventoryForRecord;
+  window.restoreInventoryForRecord = function(name, doseText){
+    const med = findSimpleMedByName(name);
+    if (med) { const qty = parseSimpleQty(doseText); med.quantity += qty; persistSimpleMeds(); renderSimpleMedList(); renderMedicineOptions(); return med; }
+    const result = _restoreInventoryForRecord(name, doseText);
+    renderMedicineOptions();
+    return result;
+  };
+
+  renderSimpleMedList();
+  renderMedicineOptions();
+  applySmartDefaultSelection();
+
+  console.log('[botiquin] inventory-driven registro select loaded v2');
 })();
 </script>
 </body>
