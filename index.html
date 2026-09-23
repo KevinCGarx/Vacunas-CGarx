@@ -3680,13 +3680,20 @@ async function pushChanges() {
 
 // Pull: fetch records newer than lastSyncTime
 async function pullChanges() {
+
+  
   if (!sb || !navigator.onLine) return;
   const user = (await sb.auth.getUser()).data.user;
   if (!user) return;
 
   let query = sb.from('records').select('*');
   if (lastSyncTime) query = query.gt('updated_at', lastSyncTime);
-  const { data } = await query;
+  const { data, error } = await query;
+if (error) { console.warn('pull error', error); return; }
+if (!data || !Array.isArray(data)) return;   // 👈 add this
+for (const remote of data) {
+  // ...
+}
 
   // Merge into local records
   for (const remote of data) {
