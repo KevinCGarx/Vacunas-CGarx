@@ -3640,6 +3640,8 @@ self.addEventListener('fetch', (event) => {
 // Global sync state
 // --- Sync state ---
 let isSyncing = false;
+let lastSyncTime = localStorage.getItem('lastSyncTime') || null;
+
 
 // --- Mappers: DB row → local shape ---
 function mapRemoteToLocal(r) {
@@ -5348,26 +5350,28 @@ async function manualSync() {
         );
       }
       function normalizeRecord(r) {
-        if (!r || !r.date) return null;
-        const site =
-          r.site || zones.find((z) => zoneNames[z] === r.siteLabel) || "";
-        const siteLabel =
-          zoneNames[site] ||
-          translateSiteLabel(r.siteLabel) ||
-          r.siteLabel ||
-          "";
-        return {
-          id: r.id || uid(),
-          date: String(r.date).slice(0, 10),
-          time: r.time || "20:30",
-          type: r.type || "medication",
-          vaccine: r.vaccine || r.name || "",
-          dose: r.dose || "",
-          site,
-          siteLabel,
-          notes: r.notes || "",
-        };
-      }
+  if (!r || !r.date) return null;
+  const site =
+    r.site || zones.find((z) => zoneNames[z] === r.siteLabel) || "";
+  const siteLabel =
+    zoneNames[site] ||
+    translateSiteLabel(r.siteLabel) ||
+    r.siteLabel ||
+    "";
+  return {
+    id: r.id || uid(),
+    date: String(r.date).slice(0, 10),
+    time: r.time || "20:30",
+    type: r.type || "medication",
+    vaccine: r.vaccine || r.name || "",
+    dose: r.dose || "",
+    site,
+    siteLabel,
+    notes: r.notes || "",
+    synced: r.synced === true,        // ← ADD THIS
+    updatedAt: r.updatedAt || null,   // ← AND THIS (used by pull's LWW check)
+  };
+}
       function persist() {
         localStorage.setItem("diegoHealthRecords", JSON.stringify(records));
       }
@@ -5657,6 +5661,7 @@ async function manualSync() {
           (b.date + b.time).localeCompare(a.date + a.time),
         );
         persist();
+        syncNow();
         editingId = null;
         document.getElementById("saveBtn").textContent = "Guardar registro";
         renderDate();
@@ -5734,6 +5739,7 @@ async function manualSync() {
           return;
         records = records.filter((x) => x.id !== id);
         persist();
+        syncNow();
         restoreInventoryForRecord(r.vaccine, r.dose);
         renderDate();
         renderHistory();
@@ -5803,6 +5809,7 @@ async function manualSync() {
           (b.date + b.time).localeCompare(a.date + a.time),
         );
         persist();
+        syncNow();
         closeEdit();
         currentDate = dateFrom(r.date);
         calendarMonth = new Date(
