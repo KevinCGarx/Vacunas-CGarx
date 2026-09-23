@@ -3552,33 +3552,186 @@ svg {
 
     <div id="printReport"></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-      /* ---- Supabase config: fill these in with your project's own values ----
-   Find them in your Supabase project: Settings > API.
-   The anon/public key is safe to expose in client-side code — it only
-   works within the permissions your Row Level Security policies allow. */
-      const SUPABASE_URL = "YOUR_SUPABASE_URL";
-      const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
-      const sb = SUPABASE_URL.startsWith("http")
-        ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-        : null;
+    // --- Supabase Config ---
+const SUPABASE_URL = "https://eypbnwdnaieztnlmufdk.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_51xKW6bbuHoV-50j0wBEKg_vQxZfbbl";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
       // TEMPORARY DEVELOPMENT LOGIN
       // This is intentionally client-side and is NOT secure for a public production site.
-      const DEV_ADMIN_USERNAME = "admin";
-      const DEV_ADMIN_PASSWORD = "admin123";
-      const DEV_ADMIN_EMAIL = "admin@local.dev";
+      //const DEV_ADMIN_USERNAME = "admin";
+      //const DEV_ADMIN_PASSWORD = "admin123";
+      //const DEV_ADMIN_EMAIL = "admin@local.dev";
       let currentUser = null;
 
       if (isWindows()) {
   const hint = document.getElementById("exportWinHint");
   if (hint) hint.hidden = false;
 }
+// sw.js
+const CACHE_NAME = 'salud-familiar-v1';
+const APP_SHELL = [
+  './',
+  './index.html',
+  './manifest.json',
+  './icon-192.png',
+  './pill.gif',
+  'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+  'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js',
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js',
+];
 
-      function isDevAdminSession() {
-        return localStorage.getItem("vacunasDevAdmin") === "1";
+// Install: pre-cache the app shell
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(APP_SHELL))
+      .then(() => self.skipWaiting())
+  );
+});
+
+// Activate: clean up old cache versions
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(
+        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+      ))
+      .then(() => self.clients.claim())
+  );
+});
+
+// Fetch: cache-first for the shell, network-first for everything else
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+
+  // Never try to cache Supabase API calls — they must always hit the network
+  if (url.hostname.endsWith('.supabase.co')) {
+    return; // let the browser handle it normally
+  }
+
+  // Network-first for HTML (so updates land), cache-first for static assets
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+          return response;
+        })
+        .catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
+
+  // Everything else: cache-first, fall back to network
+  event.respondWith(
+    caches.match(event.request).then(cached => cached || fetch(event.request))
+  );
+});
+
+
+// Global sync state
+let isSyncing = false;
+let lastSyncTime = localStorage.getItem('lastSyncTime') || null;
+
+// Mark a record as needing sync (call this inside saveRecord, deleteRecord, etc.)
+function markUnsynced(record) {
+  record.synced = false;
+  record.updatedAt = new Date().toISOString();
+  // then persist to localStorage as usual
+}
+
+// Push: send all unsynced records to Supabase
+async function pushChanges() {
+  if (!sb || !navigator.onLine) return;
+  const user = (await sb.auth.getUser()).data.user;
+  if (!user) return;
+
+  const unsyncedRecords = records.filter(r => !r.synced);
+  const unsyncedMeasurements = measurements.filter(m => !m.synced);
+  // ...same for inventory, sleep, etc.
+
+  // Push records
+  for (const r of unsyncedRecords) {
+    const { error } = await sb.from('records').upsert({
+      id: r.id,
+      user_id: user.id,
+      date: r.date,
+      time: r.time,
+      vaccine: r.vaccine,
+      dose: r.dose,
+      site: r.site,
+      site_label: r.siteLabel,
+      notes: r.notes,
+      deleted: r.deleted || false,
+    });
+    if (!error) r.synced = true;
+  }
+  // ...same pattern for other tables
+
+  // Persist updated sync flags
+  persist();
+  persistMeasurements();
+  // etc.
+}
+
+// Pull: fetch records newer than lastSyncTime
+async function pullChanges() {
+  if (!sb || !navigator.onLine) return;
+  const user = (await sb.auth.getUser()).data.user;
+  if (!user) return;
+
+  let query = sb.from('records').select('*');
+  if (lastSyncTime) query = query.gt('updated_at', lastSyncTime);
+  const { data } = await query;
+
+  // Merge into local records
+  for (const remote of data) {
+    const localIdx = records.findIndex(r => r.id === remote.id);
+    if (localIdx === -1) {
+      // New from cloud
+      records.push(mapRemoteToLocal(remote));
+    } else {
+      // Conflict: last write wins
+      const local = records[localIdx];
+      if ((remote.updated_at || '') > (local.updatedAt || '')) {
+        records[localIdx] = mapRemoteToLocal(remote);
       }
+    }
+  }
+
+  lastSyncTime = new Date().toISOString();
+  localStorage.setItem('lastSyncTime', lastSyncTime);
+  persist();
+  renderDate();
+  renderHistory();
+}
+
+// The orchestrator
+async function syncNow() {
+  if (isSyncing || !sb) return;
+  isSyncing = true;
+  try {
+    await pushChanges();
+    await pullChanges();
+  } catch (e) {
+    console.warn('Sync failed, will retry:', e);
+  } finally {
+    isSyncing = false;
+  }
+}
+
+// Trigger sync on: startup, online event, and every N seconds
+window.addEventListener('online', () => syncNow());
+window.addEventListener('offline', () => { /* just note it; app still works */ });
+setInterval(syncNow, 60_000); // every minute
+
+      //function isDevAdminSession() {
+      //  return localStorage.getItem("vacunasDevAdmin") === "1";
+    //  }
 
       function showAuthError(msg) {
         const el = document.getElementById("authError");
@@ -3589,6 +3742,7 @@ svg {
         document.getElementById("authError").classList.remove("show");
       }
 
+      /*
       async function handleLogin(e) {
         e.preventDefault();
         hideAuthError();
@@ -3634,8 +3788,41 @@ svg {
         onLoggedIn(data.user);
         return false;
       }
+      */
 
-      async function handleLogout() {
+      async function handleLogin(e) {
+  e.preventDefault();
+  hideAuthError();
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+  const btn = document.getElementById("loginBtn");
+  btn.disabled = true;
+  btn.textContent = "Entrando...";
+
+  if (!sb) {
+    btn.disabled = false;
+    btn.textContent = "Iniciar sesión";
+    showAuthError("Supabase no está configurado.");
+    return false;
+  }
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  btn.disabled = false;
+  btn.textContent = "Iniciar sesión";
+
+  if (error) {
+    showAuthError(
+      error.message === "Invalid login credentials"
+        ? "Correo o contraseña incorrectos."
+        : error.message
+    );
+    return false;
+  }
+  onLoggedIn(data.user);
+  return false;
+}
+
+      /*async function handleLogout() {
         localStorage.removeItem("vacunasDevAdmin");
         if (sb) await sb.auth.signOut();
         currentUser = null;
@@ -3645,7 +3832,18 @@ svg {
           .getElementById("authScreen")
           .classList.remove("hide", "leaving");
         document.getElementById("loginForm").reset();
-      }
+      }*/
+
+      //new async function handleLogout function to sign out user
+      async function handleLogout() {
+  if (sb) await sb.auth.signOut();
+  currentUser = null;
+  document.getElementById("userChipMenu").classList.remove("open");
+  document.getElementById("appRoot").classList.remove("show", "pre-show");
+  document.getElementById("authScreen").classList.remove("hide", "leaving");
+  document.getElementById("loginForm").reset();
+}
+
 
       function toggleUserMenu() {
         document.getElementById("userChipMenu").classList.toggle("open");
@@ -3700,7 +3898,7 @@ svg {
         }, 500);
       }
 
-      async function initAuth() {
+      /*async function initAuth() {
         // Restore the temporary development login across page refreshes.
         if (isDevAdminSession()) {
           onLoggedIn({ email: DEV_ADMIN_EMAIL, isDevAdmin: true });
@@ -3727,7 +3925,24 @@ svg {
               .classList.remove("hide", "leaving");
           }
         });
-      }
+      }/*/
+//new async function initAuth function to handle login state changes and stuff
+      async function initAuth() {
+  if (!sb) {
+    showAuthError("Supabase no está configurado.");
+    return;
+  }
+
+  sb.auth.onAuthStateChange((event, session) => {
+    if (session) {
+      onLoggedIn(session.user);
+    } else {
+      currentUser = null;
+      document.getElementById("appRoot").classList.remove("show", "pre-show");
+      document.getElementById("authScreen").classList.remove("hide", "leaving");
+    }
+  });
+}
 
       document.addEventListener("click", (e) => {
         if (!e.target.closest(".user-chip"))
