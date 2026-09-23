@@ -1,6 +1,6 @@
 // Bump this version string any time you change index.html (or any cached file)
 // so returning visits pick up the new version instead of a stale cached copy.
-const CACHE_VERSION = 'salud.familiar-v1';
+const CACHE_VERSION = 'salud.familiar-v1.2';
 const APP_SHELL = [
   './',
   './index.html',
@@ -34,22 +34,40 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const req = event.request;
 
+  // 1. Only cache GET requests
+  if (req.method !== 'GET') return;
+
+  // 2. Never touch Supabase — network only, no cache
+  const url = new URL(req.url);
+  if (url.hostname.endsWith('.supabase.co')) return;
+
+  // 3. Navigations: network-first, fall back to cached index.html
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req).then(res => {
-        const copy = res.clone();
-        caches.open(CACHE_VERSION).then(cache => cache.put('./index.html', copy));
-        return res;
-      }).catch(() => caches.match('./index.html'))
+      fetch(req)
+        .then(res => {
+          const copy = res.clone();
+          caches.open(CACHE_VERSION)
+            .then(cache => cache.put('./index.html', copy));
+          return res;
+        })
+        .catch(() => caches.match('./index.html'))
     );
     return;
   }
 
+  // 4. Everything else: cache-first, then network, only cache successful responses
   event.respondWith(
-    caches.match(req).then(cached => cached || fetch(req).then(res => {
-      const copy = res.clone();
-      caches.open(CACHE_VERSION).then(cache => cache.put(req, copy));
-      return res;
-    }).catch(() => cached))
+    caches.match(req).then(cached => {
+      if (cached) return cached;
+      return fetch(req).then(res => {
+        if (res.ok && res.type !== 'opaque') {
+          const copy = res.clone();
+          caches.open(CACHE_VERSION)
+            .then(cache => cache.put(req, copy));
+        }
+        return res;
+      });
+    })
   );
 });
