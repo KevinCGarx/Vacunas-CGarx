@@ -44,7 +44,7 @@ self.addEventListener('fetch', event => {
   // 3. Navigations: network-first, fall back to cached index.html
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req)
+      fetch(req, { cache: 'no-store' })
         .then(res => {
           const copy = res.clone();
           caches.open(CACHE_VERSION)
