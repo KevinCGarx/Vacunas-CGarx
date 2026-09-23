@@ -3759,55 +3759,10 @@ function markUnsynced(record) {
 }
 
 // Push: send all unsynced records to Supabase
-async function pushChanges() {
-  if (!sb || !navigator.onLine) return;
-  const user = (await sb.auth.getUser()).data.user;
-  if (!user) return;
 
-  const unsyncedRecords = records.filter(r => !r.synced);
-  const unsyncedMeasurements = measurements.filter(m => !m.synced);
-  // ...same for inventory, sleep, etc.
-
-  // Push records
-  for (const r of unsyncedRecords) {
-    const { error } = await sb.from('records').upsert({
-      id: r.id,
-      user_id: user.id,
-      date: r.date,
-      time: r.time,
-      vaccine: r.vaccine,
-      dose: r.dose,
-      site: r.site,
-      site_label: r.siteLabel,
-      notes: r.notes,
-      deleted: r.deleted || false,
-    });
-    if (!error) r.synced = true;
-  }
-  // ...same pattern for other tables
-
-  // Persist updated sync flags
-  persist();
-  persistMeasurements();
-  // etc.
-}
 
 // Pull: fetch records newer than lastSyncTime
-async function pullChanges() {
 
-  
-  if (!sb || !navigator.onLine) return;
-  const user = (await sb.auth.getUser()).data.user;
-  if (!user) return;
-
-  let query = sb.from('records').select('*');
-  if (lastSyncTime) query = query.gt('updated_at', lastSyncTime);
-  const { data, error } = await query;
-if (error) { console.warn('pull error', error); return; }
-if (!data || !Array.isArray(data)) return;   // 👈 add this
-for (const remote of data) {
-  // ...
-}
 
   // Merge into local records
   for (const remote of data) {
@@ -3831,19 +3786,6 @@ for (const remote of data) {
   renderHistory();
 }
 
-// The orchestrator
-async function syncNow() {
-  if (isSyncing || !sb) return;
-  isSyncing = true;
-  try {
-    await pushChanges();
-    await pullChanges();
-  } catch (e) {
-    console.warn('Sync failed, will retry:', e);
-  } finally {
-    isSyncing = false;
-  }
-}
 
 // Trigger sync on: startup, online event, and every N seconds
 window.addEventListener('online', () => syncNow());
