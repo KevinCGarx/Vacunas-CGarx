@@ -2777,6 +2777,10 @@ svg {
             </button>
             <div class="user-chip-menu" id="userChipMenu">
               <div class="who" id="userEmailFull"></div>
+              <button id="manualSyncBtn" onclick="manualSync()">
+                🔄 Sincronizar ahora
+              </button>
+              <div class="export-hint" id="syncStatusHint"></div>
               <button onclick="handleLogout()">Cerrar sesión</button>
             </div>
           </div>
@@ -3746,51 +3750,31 @@ async function syncNow() {
 
 // --- Triggers ---
 window.addEventListener('online', () => syncNow());
-setInterval(syncNow, 60_000);
-
-//local storage key for last sync timestamp
-let lastSyncTime = localStorage.getItem('lastSyncTime') || null;
-
-// Mark a record as needing sync (call this inside saveRecord, deleteRecord, etc.)
-function markUnsynced(record) {
-  record.synced = false;
-  record.updatedAt = new Date().toISOString();
-  // then persist to localStorage as usual
-}
-
-// Push: send all unsynced records to Supabase
-
-
-// Pull: fetch records newer than lastSyncTime
-
-
-  // Merge into local records
-  for (const remote of data) {
-    const localIdx = records.findIndex(r => r.id === remote.id);
-    if (localIdx === -1) {
-      // New from cloud
-      records.push(mapRemoteToLocal(remote));
-    } else {
-      // Conflict: last write wins
-      const local = records[localIdx];
-      if ((remote.updated_at || '') > (local.updatedAt || '')) {
-        records[localIdx] = mapRemoteToLocal(remote);
-      }
-    }
-  }
-
-  lastSyncTime = new Date().toISOString();
-  localStorage.setItem('lastSyncTime', lastSyncTime);
-  persist();
-  renderDate();
-  renderHistory();
-}
-
-
-// Trigger sync on: startup, online event, and every N seconds
-window.addEventListener('online', () => syncNow());
 window.addEventListener('offline', () => { /* just note it; app still works */ });
 setInterval(syncNow, 60_000); // every minute
+
+// --- Manual sync (button in user menu) ---
+async function manualSync() {
+  const btn = document.getElementById('manualSyncBtn');
+  const hint = document.getElementById('syncStatusHint');
+  if (!navigator.onLine) {
+    if (hint) hint.textContent = 'Sin conexión — se sincronizará al reconectar.';
+    return;
+  }
+  if (btn) { btn.disabled = true; btn.textContent = '🔄 Sincronizando…'; }
+  try {
+    await syncNow();
+    if (hint) {
+      const now = new Date();
+      hint.textContent = `Sincronizado ${now.toLocaleTimeString()}`;
+    }
+  } catch (e) {
+    if (hint) hint.textContent = 'Error al sincronizar. Intenta de nuevo.';
+    console.warn('manualSync failed:', e);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🔄 Sincronizar ahora'; }
+  }
+}
 
       //function isDevAdminSession() {
       //  return localStorage.getItem("vacunasDevAdmin") === "1";
@@ -3959,6 +3943,9 @@ setInterval(syncNow, 60_000); // every minute
           authScreen.classList.add("hide");
           authScreen.classList.remove("leaving");
         }, 500);
+        // Pull any changes from Supabase as soon as we're logged in,
+        // instead of waiting for the online event or the 60s interval.
+        syncNow();
       }
 
       /*async function initAuth() {
