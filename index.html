@@ -3578,7 +3578,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 // Global sync state
 // --- Sync state ---
 let isSyncing = false;
-let lastSyncTime = localStorage.getItem('lastSyncTime') || null;
+let lastSyncTime = null; // loaded per-user in onLoggedIn()
 
 
 // --- Mappers: DB row → local shape ---
@@ -3593,6 +3593,7 @@ function mapRemoteToLocal(r) {
     siteLabel: r.site_label || "",
     notes: r.notes || "",
     synced: true,
+    updatedAt: r.updated_at || null
   };
 }
 
@@ -3666,7 +3667,8 @@ async function pullChanges() {
   }
 
   lastSyncTime = new Date().toISOString();
-  localStorage.setItem('lastSyncTime', lastSyncTime);
+  localStorage.setItem('lastSyncTime_' + user.id, lastSyncTime);
+
   persist();
 
   // Refresh any UI that depends on records
@@ -3860,6 +3862,7 @@ async function manualSync() {
 
       function onLoggedIn(user) {
         currentUser = user;
+        lastSyncTime = localStorage.getItem('lastSyncTime_' + user.id) || null;
         const email = user.email || "";
         document.getElementById("userInitials").textContent = (
           email[0] || "?"
@@ -4471,16 +4474,6 @@ async function manualSync() {
           "_" +
           Math.random().toString(36).slice(2, 7)
         );
-      }
-      function normalizeInventoryItem(i) {
-        if (!i || !String(i.name || "").trim()) return null;
-        return {
-          id: i.id || inventoryUid(),
-          name: String(i.name).trim(),
-          type: i.type || "medication",
-          quantity: Math.max(0, Number(i.quantity) || 0),
-          unit: String(i.unit || "unidades").trim() || "unidades",
-        };
       }
       function persistInventory() {
         localStorage.setItem(
