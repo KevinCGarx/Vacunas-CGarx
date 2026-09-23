@@ -3634,7 +3634,122 @@ self.addEventListener('fetch', (event) => {
 
 
 // Global sync state
+// --- Sync state ---
 let isSyncing = false;
+let lastSyncTime = localStorage.getItem('lastSyncTime') || null;
+
+// --- Mappers: DB row → local shape ---
+function mapRemoteToLocal(r) {
+  return {
+    id: r.id,
+    date: r.date,
+    time: r.time,
+    vaccine: r.vaccine,
+    dose: r.dose || "",
+    site: r.site || "",
+    siteLabel: r.site_label || "",
+    notes: r.notes || "",
+    synced: true,
+  };
+}
+
+// --- Mark a record for push ---
+function markUnsynced(record) {
+  record.synced = false;
+  record.updatedAt = new Date().toISOString();
+}
+
+// --- Push: local → Supabase ---
+async function pushChanges() {
+  if (!sb || !navigator.onLine) return;
+  const userResp = await sb.auth.getUser();
+  const user = userResp?.data?.user;
+  if (!user) return;
+
+  // Backfill missing flags
+  records.forEach(r => { if (r.synced === undefined) r.synced = false; });
+
+  const unsynced = records.filter(r => !r.synced);
+  if (!unsynced.length) return;
+
+  for (const r of unsynced) {
+    const { error } = await sb.from('records').upsert({
+      id: r.id,
+      user_id: user.id,
+      date: r.date,
+      time: r.time,
+      vaccine: r.vaccine,
+      dose: r.dose || null,
+      site: r.site || null,
+      site_label: r.siteLabel || null,
+      notes: r.notes || null,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) {
+      console.warn('push failed for', r.id, error);
+      continue; // don't mark as synced; retry next cycle
+    }
+    r.synced = true;
+  }
+  persist();
+}
+
+// --- Pull: Supabase → local ---
+async function pullChanges() {
+  if (!sb || !navigator.onLine) return;
+  const userResp = await sb.auth.getUser();
+  const user = userResp?.data?.user;
+  if (!user) return;
+
+  let query = sb.from('records').select('*').eq('user_id', user.id);
+  if (lastSyncTime) query = query.gt('updated_at', lastSyncTime);
+
+  const { data, error } = await query;
+  if (error) { console.warn('pull error', error); return; }
+  if (!Array.isArray(data)) return;  // ← guard against null
+
+  for (const remote of data) {
+    const localIdx = records.findIndex(r => r.id === remote.id);
+    if (localIdx === -1) {
+      records.push(mapRemoteToLocal(remote));
+    } else {
+      const local = records[localIdx];
+      // Last-write-wins: only overwrite if remote is newer AND local is already synced
+      // (don't clobber unsynced local edits)
+      if (local.synced && (remote.updated_at || '') > (local.updatedAt || '')) {
+        records[localIdx] = mapRemoteToLocal(remote);
+      }
+    }
+  }
+
+  lastSyncTime = new Date().toISOString();
+  localStorage.setItem('lastSyncTime', lastSyncTime);
+  persist();
+
+  // Refresh any UI that depends on records
+  if (typeof renderDate === 'function') renderDate();
+  if (typeof renderHistory === 'function') renderHistory();
+}
+
+// --- Orchestrator ---
+async function syncNow() {
+  if (isSyncing || !sb) return;
+  isSyncing = true;
+  try {
+    await pushChanges();
+    await pullChanges();
+  } catch (e) {
+    console.warn('Sync failed, will retry:', e);
+  } finally {
+    isSyncing = false;
+  }
+}
+
+// --- Triggers ---
+window.addEventListener('online', () => syncNow());
+setInterval(syncNow, 60_000);
+
+//local storage key for last sync timestamp
 let lastSyncTime = localStorage.getItem('lastSyncTime') || null;
 
 // Mark a record as needing sync (call this inside saveRecord, deleteRecord, etc.)
