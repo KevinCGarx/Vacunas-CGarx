@@ -3636,7 +3636,6 @@ self.addEventListener('fetch', (event) => {
 // Global sync state
 // --- Sync state ---
 let isSyncing = false;
-let lastSyncTime = localStorage.getItem('lastSyncTime') || null;
 
 // --- Mappers: DB row → local shape ---
 function mapRemoteToLocal(r) {
