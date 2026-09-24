@@ -3603,6 +3603,15 @@ function markUnsynced(record) {
   record.updatedAt = new Date().toISOString();
 }
 
+// --- Ids we know exist in Supabase (used to detect deletes) ---
+function loadKnownRecordIds(userId) {
+  try { return new Set(JSON.parse(localStorage.getItem('syncIds_records_' + userId) || '[]')); }
+  catch (e) { return new Set(); }
+}
+function saveKnownRecordIds(userId, set) {
+  localStorage.setItem('syncIds_records_' + userId, JSON.stringify([...set]));
+}
+
 // --- Push: local → Supabase ---
 async function pushChanges() {
   if (!sb || !navigator.onLine) return;
@@ -3613,9 +3622,21 @@ async function pushChanges() {
   // Backfill missing flags
   records.forEach(r => { if (r.synced === undefined) r.synced = false; });
 
-  const unsynced = records.filter(r => !r.synced);
-  if (!unsynced.length) return;
+  // Every record already synced is known to exist remotely
+  const known = loadKnownRecordIds(user.id);
+  records.forEach(r => { if (r.synced === true) known.add(r.id); });
 
+  // 1) Deletes: known remotely but gone locally -> delete in Supabase too
+  const localIds = new Set(records.map(r => r.id));
+  const gone = [...known].filter(id => !localIds.has(id));
+  if (gone.length) {
+    const { error } = await sb.from('records').delete().eq('user_id', user.id).in('id', gone);
+    if (error) console.warn('delete failed for records', error); // retried next cycle
+    else gone.forEach(id => known.delete(id));
+  }
+
+  // 2) New / edited records
+  const unsynced = records.filter(r => !r.synced);
   for (const r of unsynced) {
     const { error } = await sb.from('records').upsert({
       id: r.id,
@@ -3634,8 +3655,10 @@ async function pushChanges() {
       continue; // don't mark as synced; retry next cycle
     }
     r.synced = true;
+    known.add(r.id);
   }
-  persist();
+  saveKnownRecordIds(user.id, known);
+  if (unsynced.length) persist();
 }
 
 // --- Pull: Supabase → local ---
@@ -3663,6 +3686,20 @@ async function pullChanges() {
       if (local.synced && (remote.updated_at || '') > (local.updatedAt || '')) {
         records[localIdx] = mapRemoteToLocal(remote);
       }
+    }
+  }
+
+  // Deletes made elsewhere (other device / Supabase dashboard): drop local records
+  // that were synced before but no longer exist remotely.
+  const { data: idRows, error: idErr } = await sb.from('records').select('id').eq('user_id', user.id);
+  if (!idErr && Array.isArray(idRows)) {
+    const remoteIds = new Set(idRows.map(r => r.id));
+    const removed = records.filter(r => r.synced === true && !remoteIds.has(r.id)).map(r => r.id);
+    if (removed.length) {
+      records = records.filter(r => !removed.includes(r.id));
+      const known = loadKnownRecordIds(user.id);
+      removed.forEach(id => known.delete(id));
+      saveKnownRecordIds(user.id, known);
     }
   }
 
