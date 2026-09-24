@@ -6617,11 +6617,12 @@ async function manualSync() {
               "vaccine / medication",
               "vaccine",
               "medication",
+              "vacuna / medicación",
               "vacuna",
               "medicamento",
             ),
             dose: find("dose", "dosis"),
-            site: find("injection site", "site", "sitio"),
+            site: find("injection site", "site", "sitio de inyección", "sitio"),
             notes: find("notes", "note", "notas"),
           };
           incoming = rows.slice(1).map((row) => ({
