@@ -3676,18 +3676,273 @@ async function pullChanges() {
   if (typeof renderHistory === 'function') renderHistory();
 }
 
+// ============================================================
+// Sync for Inventario + Peso y talla (small per-user tables)
+// ------------------------------------------------------------
+// Every local item carries:
+//   updatedAt – ISO time of its last local change
+//   syncSig   – snapshot of what was last pushed to / pulled from Supabase.
+//               An item is "dirty" (needs pushing) whenever its current
+//               snapshot differs from syncSig, so no edit site has to
+//               remember to flag anything.
+// Deletes are detected by remembering which ids are known to exist in
+// Supabase (localStorage key: syncIds_<table>_<userId>).
+// ============================================================
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function isUuid(s) { return UUID_RE.test(String(s || '')); }
+function newUuid() {
+  if (window.crypto && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  const b = crypto.getRandomValues(new Uint8Array(16));
+  b[6] = (b[6] & 0x0f) | 0x40;
+  b[8] = (b[8] & 0x3f) | 0x80;
+  const h = Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
+  return h.slice(0, 8) + '-' + h.slice(8, 12) + '-' + h.slice(12, 16) + '-' + h.slice(16, 20) + '-' + h.slice(20);
+}
+
+const SYNC_TABLES = {
+  inventory: {
+    table: 'inventory',
+    get: () => inventory,
+    set: (v) => { inventory = v; },
+    saveLocal: () => localStorage.setItem('diegoMedicineInventory', JSON.stringify(inventory)),
+    // local item -> DB columns (no user_id / updated_at; those are added on push)
+    toRemote: (i) => ({
+      id: i.id,
+      name: i.name,
+      type: i.type || 'medication',
+      brand: i.brand || null,
+      strength: Number(i.strength) || 0,
+      strength_unit: i.strengthUnit || 'MG',
+      daily_dose: Number(i.dailyDose) || 0,
+      daily_dose_unit: i.dailyDoseUnit || null,
+      active_remaining: Number(i.activeRemaining) || 0,
+      unopened_stock: Math.round(Number(i.unopenedStock) || 0),
+      opened_date: i.openedDate || null,
+      stability_days: Math.round(Number(i.stabilityDays) || 0),
+      lots: (Array.isArray(i.lots) ? i.lots : []).map(l => ({
+        id: l.id,
+        quantity: Number(l.quantity) || 0,
+        expiration: l.expiration || '',
+      })),
+      quantity: Number(i.quantity) || 0,
+      unit: i.unit || 'cartuchos',
+    }),
+    fromRemote: (r) => normalizeInventoryItem({
+      id: r.id,
+      name: r.name,
+      type: r.type,
+      brand: r.brand,
+      strength: r.strength,
+      strengthUnit: r.strength_unit,
+      dailyDose: r.daily_dose,
+      dailyDoseUnit: r.daily_dose_unit,
+      activeRemaining: r.active_remaining,
+      unopenedStock: r.unopened_stock,
+      quantity: r.quantity,
+      openedDate: r.opened_date,
+      stabilityDays: r.stability_days,
+      lots: Array.isArray(r.lots) ? r.lots : [],
+    }),
+    afterPull: () => {
+      if (typeof renderInventory === 'function') renderInventory();
+      if (typeof renderInventorySummary === 'function') renderInventorySummary();
+      // Refresh the config form too, unless the user is typing in it right now
+      const ae = document.activeElement;
+      const typingHere = ae && ae.closest && ae.closest('#panelInventario');
+      if (!typingHere && typeof clearInventoryForm === 'function') clearInventoryForm();
+    },
+  },
+
+  measurements: {
+    table: 'measurements',
+    get: () => measurements,
+    set: (v) => { measurements = v; },
+    saveLocal: () => localStorage.setItem('diegoMeasurements', JSON.stringify(measurements)),
+    toRemote: (m) => ({
+      id: m.id,
+      month: m.month,
+      weight: Number(m.weight),
+      height: Number(m.height),
+      date: m.date || null,
+      percentile: m.percentile || null,
+      comments: m.comments || null,
+    }),
+    fromRemote: (r) => normalizeMeasurement({
+      id: r.id,
+      month: r.month,
+      weight: r.weight,
+      height: r.height,
+      date: r.date,
+      percentile: r.percentile,
+      comments: r.comments,
+    }),
+    // One measurement per month: if two devices created the same month,
+    // keep the most recently updated one (the other is deleted remotely too).
+    dedupe: (list) => {
+      const best = new Map();
+      for (const m of list) {
+        const cur = best.get(m.month);
+        if (!cur || (Date.parse(m.updatedAt) || 0) > (Date.parse(cur.updatedAt) || 0)) best.set(m.month, m);
+      }
+      return list.filter(m => best.get(m.month) === m).sort((a, b) => b.month.localeCompare(a.month));
+    },
+    afterPull: () => {
+      if (typeof renderMeasurements === 'function') renderMeasurements();
+      if (typeof renderMeasurementSummary === 'function') renderMeasurementSummary();
+    },
+  },
+};
+
+function syncSigOf(cfg, item) { return JSON.stringify(cfg.toRemote(item)); }
+
+// Call from persistInventory()/persistMeasurements(): stamps items that changed.
+function markDirtyItems(name) {
+  const cfg = SYNC_TABLES[name];
+  const now = new Date().toISOString();
+  cfg.get().forEach(item => {
+    if (item.syncSig !== syncSigOf(cfg, item)) item.updatedAt = now;
+  });
+}
+
+// Debounced sync after a local save (no-op when logged out)
+let _syncTimer = null;
+function scheduleSync(delay = 1500) {
+  if (typeof currentUser === 'undefined' || !currentUser) return;
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(() => syncNow(), delay);
+}
+
+async function pushSmallDeletes(cfg, user, known) {
+  const localIds = new Set(cfg.get().map(x => x.id));
+  const gone = [...known].filter(id => !localIds.has(id));
+  if (!gone.length) return;
+  const { error } = await sb.from(cfg.table).delete().eq('user_id', user.id).in('id', gone);
+  if (error) { console.warn('delete failed for', cfg.table, error); return; }
+  gone.forEach(id => known.delete(id));
+}
+
+async function syncSmallTable(name, user) {
+  const cfg = SYNC_TABLES[name];
+  const metaKey = 'syncIds_' + name + '_' + user.id;
+  let known;
+  try { known = new Set(JSON.parse(localStorage.getItem(metaKey) || '[]')); }
+  catch (e) { known = new Set(); }
+  const saveMeta = () => localStorage.setItem(metaKey, JSON.stringify([...known]));
+
+  // 1) Deletes made locally since the last sync
+  await pushSmallDeletes(cfg, user, known);
+
+  // 2) Push new / changed items
+  for (const item of cfg.get().slice()) {
+    const payload = cfg.toRemote(item);
+    const sig = JSON.stringify(payload);
+    if (item.syncSig === sig) continue; // clean
+    if (!item.updatedAt) item.updatedAt = new Date().toISOString();
+    const { error } = await sb.from(cfg.table).upsert({
+      ...payload,
+      user_id: user.id,
+      updated_at: item.updatedAt,
+    });
+    if (error) { console.warn('push failed for', cfg.table, item.id, error); continue; }
+    item.syncSig = sig;
+    known.add(item.id);
+  }
+
+  // 3) Pull everything (these tables are tiny)
+  const { data, error } = await sb.from(cfg.table).select('*')
+    .eq('user_id', user.id).order('created_at', { ascending: true });
+  if (error || !Array.isArray(data)) {
+    console.warn('pull failed for', cfg.table, error);
+    cfg.saveLocal(); saveMeta();
+    return;
+  }
+
+  const remoteIds = new Set(data.map(r => r.id));
+  let list = cfg.get().slice();
+  let changed = false;
+
+  for (const r of data) {
+    const idx = list.findIndex(x => x.id === r.id);
+    if (idx === -1) {
+      if (known.has(r.id)) continue; // deleted here, remote delete still pending
+      const local = cfg.fromRemote(r);
+      if (!local) continue;
+      local.updatedAt = r.updated_at || null;
+      local.syncSig = syncSigOf(cfg, local);
+      list.push(local);
+      known.add(r.id);
+      changed = true;
+    } else {
+      const local = list[idx];
+      const clean = local.syncSig === syncSigOf(cfg, local);
+      const remoteNewer = (Date.parse(r.updated_at) || 0) > (Date.parse(local.updatedAt) || 0);
+      if (clean && remoteNewer) {
+        const fresh = cfg.fromRemote(r);
+        if (fresh) {
+          fresh.updatedAt = r.updated_at || null;
+          fresh.syncSig = syncSigOf(cfg, fresh);
+          list[idx] = fresh;
+          changed = true;
+        }
+      }
+      known.add(r.id);
+    }
+  }
+
+  // Items we knew were remote but that are gone now -> deleted on another device
+  list = list.filter(x => {
+    if (remoteIds.has(x.id) || !known.has(x.id)) return true;
+    known.delete(x.id);
+    changed = true;
+    return false;
+  });
+
+  if (cfg.dedupe) {
+    const before = list.length;
+    list = cfg.dedupe(list);
+    if (list.length !== before) changed = true;
+  }
+
+  cfg.set(list);
+  cfg.saveLocal();
+  await pushSmallDeletes(cfg, user, known); // e.g. duplicates dropped by dedupe
+  saveMeta();
+  if (changed && cfg.afterPull) cfg.afterPull();
+}
+
+async function syncSmallTables() {
+  if (!sb || !navigator.onLine) return;
+  const { data } = await sb.auth.getSession();
+  const user = data && data.session && data.session.user;
+  if (!user) return;
+  for (const name of Object.keys(SYNC_TABLES)) {
+    try { await syncSmallTable(name, user); }
+    catch (e) { console.warn('sync failed for', name, e); }
+  }
+}
+
 // --- Orchestrator ---
+let syncQueued = false;
 async function syncNow() {
-  if (isSyncing || !sb) return;
+  if (!sb) return;
+  if (isSyncing) { syncQueued = true; return; } // run again right after this one
   isSyncing = true;
   try {
-    await pushChanges();
-    await pullChanges();
-  } catch (e) {
-    console.warn('Sync failed, will retry:', e);
+    try {
+      await pushChanges();
+      await pullChanges();
+    } catch (e) {
+      console.warn('Records sync failed, will retry:', e);
+    }
+    try {
+      await syncSmallTables(); // Inventario + Peso y talla
+    } catch (e) {
+      console.warn('Inventory/measurements sync failed, will retry:', e);
+    }
   } finally {
     isSyncing = false;
   }
+  if (syncQueued) { syncQueued = false; syncNow(); }
 }
 
 // --- Triggers ---
@@ -4435,6 +4690,9 @@ async function manualSync() {
       )
         .map(normalizeMeasurement)
         .filter(Boolean);
+      // Save right away so ids migrated to UUIDs stay stable across reloads
+      SYNC_TABLES.inventory.saveLocal();
+      SYNC_TABLES.measurements.saveLocal();
 
       function normalizeMeasurement(m) {
         if (!m || !/^\d{4}-\d{2}$/.test(String(m.month || ""))) return null;
@@ -4448,38 +4706,33 @@ async function manualSync() {
         )
           return null;
         return {
-          id: m.id || measurementUid(),
+          id: isUuid(m.id) ? m.id : newUuid(),
           month: String(m.month),
           weight,
           height,
           date: m.date || "",
+          percentile: String(m.percentile ?? ""),
+          comments: String(m.comments ?? ""),
+          updatedAt: m.updatedAt || null,
+          syncSig: m.syncSig || null,
         };
       }
       function measurementUid() {
-        return (
-          "m_" +
-          Date.now().toString(36) +
-          "_" +
-          Math.random().toString(36).slice(2, 7)
-        );
+        return newUuid(); // DB id column is a UUID
       }
       function persistMeasurements() {
-        localStorage.setItem("diegoMeasurements", JSON.stringify(measurements));
+        markDirtyItems("measurements");
+        SYNC_TABLES.measurements.saveLocal();
+        scheduleSync();
       }
 
       function inventoryUid() {
-        return (
-          "i_" +
-          Date.now().toString(36) +
-          "_" +
-          Math.random().toString(36).slice(2, 7)
-        );
+        return newUuid(); // DB id column is a UUID
       }
       function persistInventory() {
-        localStorage.setItem(
-          "diegoMedicineInventory",
-          JSON.stringify(inventory),
-        );
+        markDirtyItems("inventory");
+        SYNC_TABLES.inventory.saveLocal();
+        scheduleSync();
       }
       function switchTab(tab) {
         currentTab = tab;
@@ -5245,7 +5498,7 @@ async function manualSync() {
           0,
         );
         return {
-          id: i.id || inventoryUid(),
+          id: isUuid(i.id) ? i.id : newUuid(),
           name: String(i.name).trim(),
           type: i.type || "medication",
           quantity: unopenedStock,
@@ -5264,14 +5517,11 @@ async function manualSync() {
           stabilityDays: Math.max(0, Number(i.stabilityDays) || 28),
           unopenedStock,
           lots,
+          updatedAt: i.updatedAt || null,
+          syncSig: i.syncSig || null,
         };
       }
-      function persistInventory() {
-        localStorage.setItem(
-          "diegoMedicineInventory",
-          JSON.stringify(inventory),
-        );
-      }
+      /* persistInventory() is defined once, near normalizeMeasurement() */
       function uid() {
         return (
           "r_" +
