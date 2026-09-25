@@ -3603,6 +3603,25 @@ function markUnsynced(record) {
   record.updatedAt = new Date().toISOString();
 }
 
+// --- Known-remote-ids cache for the "records" table (per user) ---
+// Mirrors the syncIds_<table>_<userId> pattern used by syncSmallTable() below.
+function loadKnownRecordIds(userId) {
+  try {
+    const raw = localStorage.getItem('syncIds_records_' + userId);
+    return new Set(raw ? JSON.parse(raw) : []);
+  } catch (e) {
+    console.warn('loadKnownRecordIds failed', e);
+    return new Set();
+  }
+}
+function saveKnownRecordIds(userId, idSet) {
+  try {
+    localStorage.setItem('syncIds_records_' + userId, JSON.stringify([...idSet]));
+  } catch (e) {
+    console.warn('saveKnownRecordIds failed', e);
+  }
+}
+
 // --- Push: local → Supabase ---
 async function pushChanges() {
   if (!sb || !navigator.onLine) return;
@@ -3691,6 +3710,8 @@ async function pullChanges() {
   if (error) { console.warn('pull error', error); return; }
   if (!Array.isArray(data)) return;  // ← guard against null
 
+  const known = loadKnownRecordIds(user.id);
+
   for (const remote of data) {
     if (remote.deleted) continue; // defensive — query above should already exclude these
     const localIdx = records.findIndex(r => r.id === remote.id);
@@ -3704,7 +3725,23 @@ async function pullChanges() {
         records[localIdx] = mapRemoteToLocal(remote);
       }
     }
+    known.add(remote.id);
   }
+
+  // Mirror syncSmallTable's logic: a record we previously knew was live on
+  // the server, that's synced locally (no pending local edit) and that is no
+  // longer in the active remote set, was soft-deleted elsewhere — drop it
+  // here too instead of letting it linger forever.
+  const remoteIds = new Set(data.map(r => r.id));
+  records = records.filter(r => {
+    if (remoteIds.has(r.id)) return true;
+    if (!r.synced) return true; // keep unsynced local edits/new records regardless
+    if (!known.has(r.id)) return true; // never confirmed on the server yet
+    known.delete(r.id);
+    return false;
+  });
+
+  saveKnownRecordIds(user.id, known);
 
   lastSyncTime = new Date().toISOString();
   localStorage.setItem('lastSyncTime_' + user.id, lastSyncTime);
