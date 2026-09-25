@@ -3632,10 +3632,15 @@ async function pushChanges() {
   } else {
     const gone = [...known].filter(id => !localIds.has(id));
     if (gone.length) {
-      // Shared-family mode: any family member can delete any record, so this
-      // delete is intentionally NOT scoped to .eq('user_id', user.id).
-      const { error } = await sb.from('records').delete().in('id', gone);
-      if (error) console.warn('delete failed for records', error);
+      // Soft-delete: mark rows deleted=true instead of removing them, so a
+      // future sync bug can only ever hide rows, never destroy them. Only
+      // `deleted`/`updated_at`/`id` are sent, so Postgres's upsert-on-conflict
+      // leaves every other column (date, vaccine, etc.) untouched.
+      const nowIso = new Date().toISOString();
+      const { error } = await sb.from('records').upsert(
+        gone.map(id => ({ id, deleted: true, updated_at: nowIso }))
+      );
+      if (error) console.warn('soft-delete failed for records', error);
       else gone.forEach(id => known.delete(id));
     }
   }
@@ -3675,12 +3680,14 @@ async function pullChanges() {
 
   // Shared-family mode: pull ALL records, not just this user's, and don't
   // gate by lastSyncTime — a stale cursor on one device would otherwise hide
-  // edits another family member made on their own device.
-  const { data, error } = await sb.from('records').select('*');
+  // edits another family member made on their own device. Soft-deleted rows
+  // are excluded here so they never reappear in the UI.
+  const { data, error } = await sb.from('records').select('*').eq('deleted', false);
   if (error) { console.warn('pull error', error); return; }
   if (!Array.isArray(data)) return;  // ← guard against null
 
   for (const remote of data) {
+    if (remote.deleted) continue; // defensive — query above should already exclude these
     const localIdx = records.findIndex(r => r.id === remote.id);
     if (localIdx === -1) {
       records.push(mapRemoteToLocal(remote));
