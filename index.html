@@ -3631,18 +3631,22 @@ async function pushChanges() {
     saveKnownRecordIds(user.id, known);
   } else {
     const gone = [...known].filter(id => !localIds.has(id));
-    if (gone.length) {
-      // Soft-delete: mark rows deleted=true instead of removing them, so a
-      // future sync bug can only ever hide rows, never destroy them. Only
-      // `deleted`/`updated_at`/`id` are sent, so Postgres's upsert-on-conflict
-      // leaves every other column (date, vaccine, etc.) untouched.
-      const nowIso = new Date().toISOString();
-      const { error } = await sb.from('records').upsert(
-        gone.map(id => ({ id, deleted: true, updated_at: nowIso }))
-      );
-      if (error) console.warn('soft-delete failed for records', error);
-      else gone.forEach(id => known.delete(id));
-    }
+if (gone.length) {
+  // Soft-delete: mark rows deleted=true instead of removing them, so a
+  // future sync bug can only ever hide rows, never destroy them.
+  //
+  // Use .update() and NOT .upsert() here. The rows are already known to
+  // exist on the server (that's what `gone` means), and Postgres checks
+  // NOT NULL constraints on the proposed INSERT tuple *before* ON CONFLICT
+  // can divert to the UPDATE branch — so upserting a partial row against
+  // NOT NULL columns (user_id, date, time, vaccine) fails outright.
+  // .update() only touches the named columns on rows that already exist.
+  const nowIso = new Date().toISOString();
+  const { error } = await sb.from('records')
+    .update({ deleted: true, updated_at: nowIso })
+    .in('id', gone);
+  if (error) console.warn('soft-delete failed for records', error);
+  else gone.forEach(id => known.delete(id));
   }
 
   // 2) New / edited records
