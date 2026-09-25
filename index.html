@@ -3632,7 +3632,9 @@ async function pushChanges() {
   } else {
     const gone = [...known].filter(id => !localIds.has(id));
     if (gone.length) {
-      const { error } = await sb.from('records').delete().eq('user_id', user.id).in('id', gone);
+      // Shared-family mode: any family member can delete any record, so this
+      // delete is intentionally NOT scoped to .eq('user_id', user.id).
+      const { error } = await sb.from('records').delete().in('id', gone);
       if (error) console.warn('delete failed for records', error);
       else gone.forEach(id => known.delete(id));
     }
@@ -3671,10 +3673,10 @@ async function pullChanges() {
   const user = userResp?.data?.user;
   if (!user) return;
 
-  let query = sb.from('records').select('*').eq('user_id', user.id);
-  if (lastSyncTime) query = query.gt('updated_at', lastSyncTime);
-
-  const { data, error } = await query;
+  // Shared-family mode: pull ALL records, not just this user's, and don't
+  // gate by lastSyncTime — a stale cursor on one device would otherwise hide
+  // edits another family member made on their own device.
+  const { data, error } = await sb.from('records').select('*');
   if (error) { console.warn('pull error', error); return; }
   if (!Array.isArray(data)) return;  // ← guard against null
 
@@ -3728,6 +3730,10 @@ function newUuid() {
 const SYNC_TABLES = {
   inventory: {
     table: 'inventory',
+    // The 'inventory' remote table is shared with the botiquín (type='other')
+    // rows — pull only the somatropin/medication rows here so the two local
+    // arrays don't pull each other's data.
+    filterQuery: q => q.neq('type', 'other'),
     get: () => inventory,
     set: (v) => { inventory = v; },
     saveLocal: () => localStorage.setItem('diegoMedicineInventory', JSON.stringify(inventory)),
@@ -3848,7 +3854,9 @@ async function pushSmallDeletes(cfg, user, known) {
   const localIds = new Set(list.map(x => x.id));
   const gone = [...known].filter(id => !localIds.has(id));
   if (!gone.length) return;
-  const { error } = await sb.from(cfg.table).delete().eq('user_id', user.id).in('id', gone);
+  // Shared-family mode: any family member can delete any row, so this delete
+  // is intentionally NOT scoped to .eq('user_id', user.id).
+  const { error } = await sb.from(cfg.table).delete().in('id', gone);
   if (error) { console.warn('delete failed for', cfg.table, error); return; }
   gone.forEach(id => known.delete(id));
 }
@@ -3861,6 +3869,12 @@ async function syncSmallTable(name, user) {
   catch (e) { known = new Set(); }
   const saveMeta = () => localStorage.setItem(metaKey, JSON.stringify([...known]));
 
+  // Snapshot BEFORE this round touches `known`: an empty known-set means this
+  // device has never successfully synced this table before. Used below by
+  // cfg.preferRemoteOnFirstSync so a fresh device's local placeholder values
+  // (e.g. default kid names) don't clobber a real value already on the server.
+  const isFirstSyncForThisDevice = known.size === 0;
+
   // 1) Deletes made locally since the last sync
   await pushSmallDeletes(cfg, user, known);
 
@@ -3869,6 +3883,12 @@ async function syncSmallTable(name, user) {
     const payload = cfg.toRemote(item);
     const sig = JSON.stringify(payload);
     if (item.syncSig === sig) continue; // clean
+    if (cfg.preferRemoteOnFirstSync && isFirstSyncForThisDevice && !item.syncSig) {
+      // Never synced before, on a device that's never synced this table:
+      // hold off pushing so the pull below gets a chance to bring in a real
+      // value first, instead of overwriting it with our local default.
+      continue;
+    }
     if (!item.updatedAt) item.updatedAt = new Date().toISOString();
     const { error } = await sb.from(cfg.table).upsert({
       ...payload,
@@ -3881,8 +3901,11 @@ async function syncSmallTable(name, user) {
   }
 
   // 3) Pull everything (these tables are tiny)
-  const { data, error } = await sb.from(cfg.table).select('*')
-    .eq('user_id', user.id).order('created_at', { ascending: true });
+  let smallQuery = sb.from(cfg.table).select('*');
+  if (typeof cfg.filterQuery === 'function') smallQuery = cfg.filterQuery(smallQuery);
+  // Shared-family mode: no .eq('user_id', ...) — every family member sees every row.
+  smallQuery = smallQuery.order(cfg.orderBy || 'created_at', { ascending: true });
+  const { data, error } = await smallQuery;
   if (error || !Array.isArray(data)) {
     console.warn('pull failed for', cfg.table, error);
     cfg.saveLocal(); saveMeta();
@@ -3908,7 +3931,11 @@ async function syncSmallTable(name, user) {
       const local = list[idx];
       const clean = local.syncSig === syncSigOf(cfg, local);
       const remoteNewer = (Date.parse(r.updated_at) || 0) > (Date.parse(local.updatedAt) || 0);
-      if (clean && remoteNewer) {
+      // Mirrors the push-side skip above: a never-synced item on a
+      // preferRemoteOnFirstSync table, on a device syncing this table for
+      // the first time, always takes the server's value.
+      const preferRemote = cfg.preferRemoteOnFirstSync && isFirstSyncForThisDevice && !local.syncSig;
+      if (preferRemote || (clean && remoteNewer)) {
         const fresh = cfg.fromRemote(r);
         if (fresh) {
           fresh.updatedAt = r.updated_at || null;
@@ -4114,6 +4141,13 @@ async function manualSync() {
       async function handleLogout() {
   if (sb) await sb.auth.signOut();
   currentUser = null;
+  // Clear per-table "known remote ids" caches. If we left these behind on a
+  // shared browser, the next login could start with an empty local records
+  // list but a full known-ids cache — exactly the state pushChanges()'s
+  // mass-delete guard exists to catch, so we avoid ever creating it.
+  Object.keys(localStorage)
+    .filter(k => k.startsWith('syncIds_'))
+    .forEach(k => localStorage.removeItem(k));
   document.getElementById("userChipMenu").classList.remove("open");
   document.getElementById("appRoot").classList.remove("show", "pre-show");
   document.getElementById("authScreen").classList.remove("hide", "leaving");
@@ -7817,23 +7851,99 @@ async function manualSync() {
     <script>
       /* ===== Sleep tracker (Sueño) — added on top of the existing page, fully separate storage ===== */
       (function () {
+        function normalizeSleepRecord(r) {
+          if (
+            !r ||
+            !r.date ||
+            !r.bedtime ||
+            (r.kid !== "kid1" && r.kid !== "kid2")
+          )
+            return null;
+          return {
+            id: isUuid(r.id) ? r.id : newUuid(),
+            kid: r.kid,
+            date: r.date,
+            bedtime: r.bedtime,
+            notes: r.notes || "",
+            updatedAt: r.updatedAt || null,
+            syncSig: r.syncSig || null,
+          };
+        }
         let sleepRecords = JSON.parse(
           localStorage.getItem("diegoSleepRecords") || "[]",
-        ).filter(
-          (r) =>
-            r &&
-            r.id &&
-            r.date &&
-            r.bedtime &&
-            (r.kid === "kid1" || r.kid === "kid2"),
-        );
+        )
+          .map(normalizeSleepRecord)
+          .filter(Boolean);
         let sleepKids = Object.assign(
           {
-            kid1: { name: "Niño 1", color: "#5468d6" },
-            kid2: { name: "Niño 2", color: "#e0729a" },
+            kid1: { id: "kid1", name: "Niño 1", color: "#5468d6" },
+            kid2: { id: "kid2", name: "Niño 2", color: "#e0729a" },
           },
           JSON.parse(localStorage.getItem("diegoSleepKids") || "null") || {},
         );
+        // Older saved data may not have an `id` field on each kid — make sure
+        // it's always present and matches its dict key, since the sync engine
+        // matches local/remote rows by item.id.
+        Object.keys(sleepKids).forEach((k) => {
+          sleepKids[k].id = k;
+        });
+
+        SYNC_TABLES.sleep_records = {
+          table: "sleep_records",
+          get: () => sleepRecords,
+          set: (v) => {
+            sleepRecords = v;
+          },
+          saveLocal: () =>
+            localStorage.setItem(
+              "diegoSleepRecords",
+              JSON.stringify(sleepRecords),
+            ),
+          toRemote: (r) => ({
+            id: r.id,
+            kid: r.kid,
+            date: r.date,
+            bedtime: r.bedtime,
+            notes: r.notes || null,
+          }),
+          fromRemote: (row) => normalizeSleepRecord(row),
+          afterPull: () => {
+            renderSleepList();
+            renderSleepStats();
+          },
+        };
+
+        SYNC_TABLES.sleep_kids = {
+          table: "sleep_kids",
+          orderBy: "id", // this table has no created_at column
+          preferRemoteOnFirstSync: true,
+          // Return the SAME object references stored in sleepKids (not
+          // copies) so that when the sync engine stamps item.syncSig after a
+          // push, the write lands on the real object that renderSleepKidSwitch
+          // etc. read from.
+          get: () => Object.values(sleepKids),
+          set: (v) => {
+            const d = {};
+            (Array.isArray(v) ? v : []).forEach((item) => {
+              if (item && item.id) d[item.id] = item;
+            });
+            sleepKids = d;
+          },
+          saveLocal: () =>
+            localStorage.setItem("diegoSleepKids", JSON.stringify(sleepKids)),
+          toRemote: (k) => ({ id: k.id, name: k.name, color: k.color }),
+          fromRemote: (row) => ({
+            id: row.id,
+            name: row.name,
+            color: row.color,
+          }),
+          afterPull: () => {
+            renderSleepKidSwitch();
+            renderSleepList();
+            renderSleepStats();
+          },
+        };
+
         let currentSleepKid =
           localStorage.getItem("diegoSleepCurrentKid") === "kid2"
             ? "kid2"
@@ -7851,22 +7961,22 @@ async function manualSync() {
         document.head.appendChild(sleepStyleEl);
 
         function persistSleep() {
-          localStorage.setItem(
-            "diegoSleepRecords",
-            JSON.stringify(sleepRecords),
-          );
+          markDirtyItems("sleep_records");
+          SYNC_TABLES.sleep_records.saveLocal();
+          scheduleSync();
         }
         function persistSleepKids() {
-          localStorage.setItem("diegoSleepKids", JSON.stringify(sleepKids));
+          markDirtyItems("sleep_kids");
+          SYNC_TABLES.sleep_kids.saveLocal();
+          scheduleSync();
         }
         function sleepUid() {
-          return (
-            "s_" +
-            Date.now().toString(36) +
-            "_" +
-            Math.random().toString(36).slice(2, 7)
-          );
+          return newUuid(); // DB id column is a UUID
         }
+        // Preserve UUID-migrated ids across reloads, matching the pattern
+        // used for inventory/measurements.
+        SYNC_TABLES.sleep_records.saveLocal();
+        SYNC_TABLES.sleep_kids.saveLocal();
         function sortedSleepRecords(kid) {
           return sleepRecords
             .filter((r) => !kid || r.kid === kid)
@@ -8728,32 +8838,61 @@ async function manualSync() {
     <script>
       /* ===== Botiquín (simple multi-medicine inventory) + link Registro to Inventario ===== */
       (function () {
+        function normalizeSimpleMed(i) {
+          if (!i || !String(i.name || "").trim()) return null;
+          return {
+            id: isUuid(i.id) ? i.id : newUuid(),
+            name: String(i.name).trim(),
+            unit: String(i.unit || "unidades").trim() || "unidades",
+            quantity: Math.max(0, Number(i.quantity) || 0),
+            notes: String(i.notes || "").trim(),
+            updatedAt: i.updatedAt || null,
+            syncSig: i.syncSig || null,
+          };
+        }
         let simpleMeds = JSON.parse(
           localStorage.getItem("diegoSimpleMeds") || "[]",
         )
           .map(normalizeSimpleMed)
           .filter(Boolean);
 
-        function normalizeSimpleMed(i) {
-          if (!i || !String(i.name || "").trim()) return null;
-          return {
-            id: i.id || simpleMedUid(),
-            name: String(i.name).trim(),
-            unit: String(i.unit || "unidades").trim() || "unidades",
-            quantity: Math.max(0, Number(i.quantity) || 0),
-            notes: String(i.notes || "").trim(),
-          };
-        }
         function simpleMedUid() {
-          return (
-            "m_" +
-            Date.now().toString(36) +
-            "_" +
-            Math.random().toString(36).slice(2, 7)
-          );
+          return newUuid(); // DB id column is a UUID
         }
+
+        SYNC_TABLES.botiquin = {
+          table: "inventory", // botiquín rows live in the same table as somatropin
+          filterQuery: (q) => q.eq("type", "other"),
+          get: () => simpleMeds,
+          set: (v) => {
+            simpleMeds = v;
+          },
+          saveLocal: () =>
+            localStorage.setItem(
+              "diegoSimpleMeds",
+              JSON.stringify(simpleMeds),
+            ),
+          toRemote: (i) => ({
+            id: i.id,
+            name: i.name,
+            type: "other",
+            quantity: Number(i.quantity) || 0,
+            unit: i.unit || "unidades",
+            notes: i.notes || null,
+          }),
+          fromRemote: (row) => normalizeSimpleMed(row),
+          afterPull: () => {
+            renderSimpleMedList();
+          },
+        };
+        // Preserve UUID-migrated ids across reloads, matching the pattern
+        // used for inventory/measurements.
+        SYNC_TABLES.botiquin.saveLocal();
+
         function persistSimpleMeds() {
-          localStorage.setItem("diegoSimpleMeds", JSON.stringify(simpleMeds));
+          markDirtyItems("botiquin");
+          SYNC_TABLES.botiquin.saveLocal();
+          scheduleSync();
         }
         function findSimpleMedByName(name) {
           const n = String(name || "")
