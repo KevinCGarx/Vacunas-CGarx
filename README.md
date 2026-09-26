@@ -1,4 +1,5 @@
 🏥 Salud Familiar — Family Health & Medication Tracker
+---
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 [![Status: In Development](https://img.shields.io/badge/Status-In%20Development-yellow.svg)]()
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)]()
