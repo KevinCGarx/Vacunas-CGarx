@@ -2,6 +2,8 @@
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 [![Status: In Development](https://img.shields.io/badge/Status-In%20Development-yellow.svg)]()
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)]()
+
+---
 Salud Familiar is an intuitive, web-based health management portal designed to help families log, monitor, and manage daily health routines, medication schedules, somatic treatments, injection rotation zones, vital measurements, and sleep tracking.
 ---
 ✨ Features
