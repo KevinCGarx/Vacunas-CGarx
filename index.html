@@ -2,7 +2,7 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Salud Familiar</title>
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#4c8298" />
@@ -64,9 +64,9 @@ function showPdfToast() {
          --shadow:0 12px 34px rgba(0,0,0,.45);--radius:20px
        }
        *{box-sizing:border-box}
-       body,.app,.card,.btn,.topbar,.brand,header,section,div,button,input,select,textarea{
-         transition:background-color .35s ease,color .35s ease,border-color .35s ease,box-shadow .35s ease
-       }
+       /* Perf: no global transition on every element. Theme switch is now instant
+          (hundreds of simultaneous colour transitions were what made it lag). */
+       body{transition:background-color .25s ease,color .25s ease}
 
        body{
          margin:0;
@@ -75,7 +75,8 @@ function showPdfToast() {
          font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
          min-height:100vh
        }
-       :root[data-theme="dark"] body{
+       :root[data-theme="dark"] body::before{
+         content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;transform:translateZ(0);
          background-image:
            radial-gradient(1.4px 1.4px at 10% 8%, rgba(220,230,255,.55), transparent),
            radial-gradient(1.2px 1.2px at 28% 22%, rgba(220,230,255,.4), transparent),
@@ -85,7 +86,6 @@ function showPdfToast() {
            radial-gradient(1.2px 1.2px at 15% 45%, rgba(220,230,255,.3), transparent),
            radial-gradient(1.6px 1.6px at 65% 55%, rgba(220,230,255,.3), transparent);
          background-repeat:no-repeat;
-         background-attachment:fixed;
        }
 
        button,input,textarea,select{
@@ -656,11 +656,9 @@ svg {
   0%,
   100% {
     stroke-opacity: 0.5;
-    stroke-width: 3;
   }
   50% {
     stroke-opacity: 1;
-    stroke-width: 5.5;
   }
 }
 .rotation-hint {
@@ -2675,9 +2673,65 @@ svg {
   }
 }
 
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+    
+/* ================= MOBILE / TOUCH PERFORMANCE ================= */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+button,a,select,label,input[type="checkbox"],input[type="radio"],.btn{touch-action:manipulation}
+body{overscroll-behavior-y:none}
+
+/* Touch devices: hover never really happens, so don't run hover transforms/shadows (they stick after taps) */
+@media (hover:none){
+  .btn:hover,.theme-toggle:hover{transform:none;box-shadow:0 2px 7px rgba(0,0,0,.03)}
+  .btn:active{transform:scale(.97)}
+}
+
+@media (max-width:820px){
+  /* lighter shadows = much cheaper paints while scrolling */
+  :root{--shadow:0 4px 12px rgba(37,55,68,.07)}
+  :root[data-theme="dark"]{--shadow:0 4px 12px rgba(0,0,0,.35)}
+  /* blur is very expensive on phone GPUs */
+  .modal-backdrop{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(20,30,40,.6)}
+  /* decorative infinite animations off on phones */
+  .sleep-stats-card:before{animation:none;opacity:.5}
+  .zone.scheduled:not(.selected) .zone-fill{animation:none;stroke-opacity:.9}
+  /* safe areas (notch / home bar) */
+  .app{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right));padding-bottom:max(48px,calc(env(safe-area-inset-bottom) + 24px))}
+}
+
+@media (max-width:540px){
+  /* 16px inputs stop iOS from zooming on focus (which feels like lag/jank) */
+  input,select,textarea{font-size:16px!important}
+  .app{padding-top:16px}
+  .topbar{gap:10px;margin-bottom:14px}
+}
+
+/* Respect the OS "reduce motion" setting too */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+</style>
+    <script>
+      /* Perf: ~2MB of export libs no longer block first paint. They load when the browser is idle. */
+      (function () {
+        function load(src) {
+          var el = document.createElement("script");
+          el.src = src;
+          el.async = true;
+          document.head.appendChild(el);
+        }
+        window.loadExportLibs = function () {
+          if (window.__exportLibsRequested) return;
+          window.__exportLibsRequested = true;
+          load("https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js");
+          load("https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js");
+        };
+        window.addEventListener("load", function () {
+          if ("requestIdleCallback" in window)
+            requestIdleCallback(window.loadExportLibs, { timeout: 4000 });
+          else setTimeout(window.loadExportLibs, 2500);
+        });
+      })();
+    </script>
   </head>
   <body>
     <div id="authScreen">
@@ -2781,6 +2835,10 @@ svg {
                 🔄 Sincronizar ahora
               </button>
               <div class="export-hint" id="syncStatusHint"></div>
+              <button id="reminderBtn" onclick="toggleReminders()">
+                🔔 Activar recordatorios
+              </button>
+              <div class="export-hint" id="reminderHint"></div>
               <button onclick="handleLogout()">Cerrar sesión</button>
             </div>
           </div>
@@ -4056,7 +4114,7 @@ async function syncNow() {
 // --- Triggers ---
 window.addEventListener('online', () => syncNow());
 window.addEventListener('offline', () => { /* just note it; app still works */ });
-setInterval(syncNow, 60_000); // every minute
+setInterval(() => { if (!document.hidden) syncNow(); }, 60_000); // every minute, only while visible
 
 // --- Manual sync (button in user menu) ---
 async function manualSync() {
@@ -4500,7 +4558,11 @@ async function manualSync() {
         const focusIdx = Math.round(indexFloat);
 
         wheelRows.forEach((row, i) => {
-          const isToday = iso(wheelDayDate(i)) === todayIso;
+          if (row._todayIso !== todayIso) {
+            row._todayIso = todayIso;
+            row._isToday = iso(wheelDayDate(i)) === todayIso;
+          }
+          const isToday = row._isToday;
           const offset = i - indexFloat;
           const dist = Math.abs(offset);
           const isFocus = i === focusIdx;
@@ -4516,18 +4578,27 @@ async function manualSync() {
           row.style.transform = `translateY(${y.toFixed(1)}px) scale(${scale.toFixed(3)}) rotateX(${rotX}deg)`;
           row.style.opacity = opacity.toFixed(2);
           row.style.zIndex = String(20 - Math.round(dist));
-          row.classList.toggle("focus", isFocus);
-          row.classList.toggle("today", isToday);
+          if (row._focus !== isFocus) {
+            row._focus = isFocus;
+            row.classList.toggle("focus", isFocus);
+          }
+          if (row._todayCls !== isToday) {
+            row._todayCls = isToday;
+            row.classList.toggle("today", isToday);
+          }
 
-          const daySpan = row.querySelector(".wheel-day");
-          const badge = daySpan.querySelector(".wheel-hoy");
-          if (isToday && !badge) {
-            const b = document.createElement("span");
-            b.className = "wheel-hoy";
-            b.textContent = "HOY";
-            daySpan.appendChild(b);
-          } else if (!isToday && badge) {
-            badge.remove();
+          if (row._badgeFor !== isToday) {
+            row._badgeFor = isToday;
+            const daySpan = row.querySelector(".wheel-day");
+            const badge = daySpan.querySelector(".wheel-hoy");
+            if (isToday && !badge) {
+              const b = document.createElement("span");
+              b.className = "wheel-hoy";
+              b.textContent = "HOY";
+              daySpan.appendChild(b);
+            } else if (!isToday && badge) {
+              badge.remove();
+            }
           }
         });
       }
@@ -9292,6 +9363,175 @@ async function manualSync() {
         applySmartDefaultSelection();
 
         console.log("[botiquin] inventory-driven registro select loaded v2");
+      })();
+    </script>
+    <script>
+      /* ===== Recordatorios push: medición mensual (días 7, 8, 9 y 10) ===== */
+      (function () {
+        // Llave PÚBLICA VAPID (la que genera: npx web-push generate-vapid-keys)
+        const VAPID_PUBLIC_KEY = "PEGA_AQUI_TU_VAPID_PUBLIC_KEY";
+
+        const isIOS =
+          /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+          (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+        const isStandalone =
+          window.matchMedia("(display-mode: standalone)").matches ||
+          navigator.standalone === true;
+        const supported =
+          "serviceWorker" in navigator &&
+          "PushManager" in window &&
+          "Notification" in window;
+
+        function b64ToU8(b64) {
+          const pad = "=".repeat((4 - (b64.length % 4)) % 4);
+          const raw = atob((b64 + pad).replace(/-/g, "+").replace(/_/g, "/"));
+          return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+        }
+
+        function getReg() {
+          return Promise.race([
+            navigator.serviceWorker.ready,
+            new Promise((_, rej) =>
+              setTimeout(() => rej(new Error("sw-timeout")), 8000),
+            ),
+          ]);
+        }
+
+        async function saveSub(sub) {
+          const {
+            data: { user },
+          } = await sb.auth.getUser();
+          if (!user) throw new Error("no-user");
+          const j = sub.toJSON();
+          const { error } = await sb.from("push_subscriptions").upsert(
+            {
+              user_id: user.id,
+              endpoint: j.endpoint,
+              p256dh: j.keys.p256dh,
+              auth: j.keys.auth,
+              user_agent: navigator.userAgent.slice(0, 200),
+            },
+            { onConflict: "endpoint" },
+          );
+          if (error) throw error;
+        }
+
+        function ui() {
+          return {
+            btn: document.getElementById("reminderBtn"),
+            hint: document.getElementById("reminderHint"),
+          };
+        }
+
+        async function refreshReminderUI() {
+          const { btn, hint } = ui();
+          if (!btn || !hint) return;
+          btn.disabled = true;
+          if (!supported) {
+            hint.textContent = "Este navegador no soporta notificaciones.";
+            return;
+          }
+          if (isIOS && !isStandalone) {
+            hint.textContent =
+              "En iPhone abre la app desde el icono de la pantalla de inicio para activar los recordatorios.";
+            return;
+          }
+          if (Notification.permission === "denied") {
+            hint.textContent =
+              "Las notificaciones están bloqueadas. Actívalas en los ajustes del teléfono para esta app.";
+            return;
+          }
+          let sub = null;
+          try {
+            sub = await (await getReg()).pushManager.getSubscription();
+          } catch (e) {}
+          if (sub && Notification.permission === "granted") {
+            btn.textContent = "🔕 Desactivar recordatorios";
+            hint.textContent =
+              "Activos: aviso los días 7, 8 y 9, y uno urgente el día 10 (9:00 am).";
+            try {
+              await saveSub(sub); // mantiene la suscripción ligada a esta cuenta
+            } catch (e) {}
+          } else {
+            btn.textContent = "🔔 Activar recordatorios";
+            hint.textContent = "";
+          }
+          btn.disabled = false;
+        }
+
+        window.toggleReminders = async function () {
+          const { btn, hint } = ui();
+          btn.disabled = true;
+          try {
+            const reg = await getReg();
+            const existing = await reg.pushManager.getSubscription();
+
+            // Desactivar
+            if (existing && Notification.permission === "granted") {
+              await sb
+                .from("push_subscriptions")
+                .delete()
+                .eq("endpoint", existing.endpoint);
+              await existing.unsubscribe();
+              hint.textContent = "Recordatorios desactivados.";
+              btn.textContent = "🔔 Activar recordatorios";
+              btn.disabled = false;
+              return;
+            }
+
+            // Activar
+            if (VAPID_PUBLIC_KEY.startsWith("PEGA")) {
+              hint.textContent = "Falta configurar la llave VAPID en el código.";
+              btn.disabled = false;
+              return;
+            }
+            const perm = await Notification.requestPermission();
+            if (perm !== "granted") {
+              await refreshReminderUI();
+              return;
+            }
+            const sub =
+              existing ||
+              (await reg.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: b64ToU8(VAPID_PUBLIC_KEY),
+              }));
+            await saveSub(sub);
+            reg.showNotification("Recordatorios activados", {
+              body: "Te avisaremos los días 7, 8 y 9, y con un aviso urgente el día 10.",
+              icon: "icon-192.png",
+              tag: "recordatorio-activado",
+            });
+            await refreshReminderUI();
+          } catch (e) {
+            console.warn("Recordatorios:", e);
+            hint.textContent =
+              "No se pudo activar. Revisa tu conexión e inténtalo de nuevo.";
+            btn.disabled = false;
+          }
+        };
+
+        // Al tocar la notificación: abrir la pestaña "Peso y talla"
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.addEventListener("message", (e) => {
+            if (e.data && e.data.type === "goto-medidas")
+              try {
+                switchTab("medidas");
+              } catch (err) {}
+          });
+        }
+        if (new URLSearchParams(location.search).get("tab") === "medidas") {
+          setTimeout(() => {
+            try {
+              switchTab("medidas");
+            } catch (err) {}
+            history.replaceState(null, "", location.pathname);
+          }, 800);
+        }
+
+        const chip = document.getElementById("userChipBtn");
+        if (chip) chip.addEventListener("click", refreshReminderUI);
+        window.addEventListener("load", refreshReminderUI);
       })();
     </script>
   </body>
