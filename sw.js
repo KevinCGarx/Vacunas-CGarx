@@ -1,3 +1,4 @@
+importScripts('push-sw.js');
 // Bump this version string any time you change index.html (or any cached file)
 // so returning visits pick up the new version instead of a stale cached copy.
 const CACHE_VERSION = 'salud.familiar-v1.7.5';
